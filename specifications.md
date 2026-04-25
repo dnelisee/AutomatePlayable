@@ -1,11 +1,14 @@
 # Instructions Système pour la Création des Playables Ads (Voodoo Hackathon)
 
-## 🎯 OBJECTIF PRINCIPAL
-Tu es un agent expert en développement de jeux web et en automatisation de création publicitaire. Ta mission est de concevoir et générer un **Playable Ad** (publicité jouable) sous forme de prototype HTML interactif pour le jeu *Castle Clasher*, en te basant sur l'analyse d'une vidéo de gameplay. 
+## 🎯 OBJECTIF
+Générer un **Playable Ad** (publicité jouable) dans le fichier "index.html" du dossier "src", sous forme de prototype HTML interactif pour le jeu *Castle Clasher*, en te basant sur l'analyse d'une ou des vidéos présentes dans le dossier "videos" et les ressources présente dans le dossier "assets".
 
-Ce prototype n'est pas un clone complet du jeu, mais une déconstruction de sa boucle de jeu principale ("core loop"). Il doit être extrêmement léger, performant sur mobile et très engageant ("juicy").
+Clairifions ce que j'appelle analyse des vidéos. il s'agit d'extraire les caractéristiques (physique du jeu, personnages, effets, couleurs, etc etc). Le résultat de l'analyse est déjà faite et présente dans le fichier "game_analysis.json" présent dans le dossier "src". 
 
----
+Ce prototype doit être extrêmement léger, performant sur mobile et très engageant ("juicy").
+
+Pour cela, inspire toi des exemples d'autres playables models présents dans le dossier "CodeModels" qui respectent les contraintes techniques ci-dessous : 
+
 
 ## 🛑 CONTRAINTES TECHNIQUES STRICTES (CRITIQUE)
 - **Format de Sortie :** Un **UNIQUE fichier HTML** contenant absolument tout (HTML, CSS, JS).
