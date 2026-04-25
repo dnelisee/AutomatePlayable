@@ -1,0 +1,472 @@
+SECTION 0 — MÉTADONNÉES
+─────────────────────────────────────────
+- Nom du jeu : Castle Clashers
+- Durée totale de la vidéo : 00:52 (B11) / 00:55 (B01)
+- Durée d'une partie complète observée : 00:48 (B11)
+- Orientation de l'écran : portrait
+- Ratio d'aspect approximatif : 9:16
+- Y a-t-il plusieurs parties jouées dans la vidéo ? Si oui, combien ? : Oui, 2 parties distinctes (B11.mp4 et B01.mp4).
+
+─────────────────────────────────────────
+SECTION 1 — PHOTOGRAPHIE DE L'ÉCRAN INITIAL
+─────────────────────────────────────────
+
+1.1 — SCHÉMA ASCII DE DISPOSITION
+
+```text
++---------------------------------------+
+| [Bleu 40%]   [ VS ]   [Rouge 40%]     | UI Supérieure (Barres HP) - 10% haut
+|  [Tour 1] 100%         [Tour 2] 100%  |
+|                                       |
+|                                       |
+|                                       |
+|                                       | Zone de ciel/décor statique - 30% haut
+|                                       |
+|                                       |
+|       /\                   /\         |
+|      /  \                 /  \        |
+|     |    |               |    |       | Zone de jeu principale - 45% central
+|  +--|    |--+         +--|    |--+    | (Tours, projectiles, animations)
+|  | C1       |         |          |    | C1, C2 = Personnages
+|  | C2       |         |          |    |
+|  +----------+         +----------+    |
+|  (oooooooooo)         (oooooooooo)    | (Chenilles des tours)
+|=======================================| Ligne de sol - 5% épaisseur
+|                                       |
+|                                       | Zone souterraine / Terre - 10% bas
++---------------------------------------+
+```
+
+1.2 — PALETTE DE COULEURS COMPLÈTE
+
+| Nom de l'élément | Description | Code Hex | Opacité |
+| :--- | :--- | :--- | :--- |
+| Fond (Ciel) | Vert/Gris pâle | `#A9C298` (estimé) | 1.0 |
+| Fond (Collines) | Vert forêt doux | `#7B965A` (estimé) | 1.0 |
+| Fond (Terre) | Rouge sombre / Marron | `#4A1C1C` (estimé) | 1.0 |
+| Base Tour Joueur | Gris pierre clair | `#D3D3D3` (estimé) | 1.0 |
+| Toit Tour Joueur | Bleu roi | `#275BB5` (estimé) | 1.0 |
+| Base Tour Ennemie | Gris pierre clair | `#D3D3D3` (estimé) | 1.0 |
+| Toit Tour Ennemie | Rouge cramoisi | `#A32020` (estimé) | 1.0 |
+| Chenilles (Tours) | Gris très foncé | `#333333` (estimé) | 1.0 |
+| Projectile (Roquette) | Gris avec bout rouge | Corps `#888888`, Pointe `#FF0000` | 1.0 |
+| Barre HP UI (Joueur) | Bleu vif | `#3A8AEE` (estimé) | 1.0 |
+| Barre HP UI (Ennemi)| Rouge vif | `#E63030` (estimé) | 1.0 |
+| Texte de score (HP) | Noir ou Blanc avec contour | `#FFFFFF` / `#000000` | 1.0 |
+| Trajectoire visée | Blanc | `#FFFFFF` | 0.8 |
+| Bouton "PLAY" (Fin) | Orange dégradé | `#F29C38` (estimé) | 1.0 |
+| Texte Bouton "PLAY" | Blanc avec ombre portée | `#FFFFFF` | 1.0 |
+
+1.3 — INVENTAIRE COMPLET DES ENTITÉS
+
+┌─────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Barre_HP_Joueur   │
+├─────────────────────────────────────┤
+│ Type            : UI
+│ Forme simplifiée: Rectangle plein
+│ Dimensions      : largeur ≈ 40% écran, hauteur ≈ 4% écran
+│ Position initiale: 0% depuis gauche, 2% depuis haut
+│ Position fixe ? : oui
+│ Animée au repos ?: non
+│ Détails visuels : Remplissage bleu, se réduit vers la gauche
+│ Quantité initiale: 1
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Tour_Joueur       │
+├─────────────────────────────────────┤
+│ Type            : joueur
+│ Forme simplifiée: 2 rectangles superposés + 2 triangles (toits) + ovale (chenilles)
+│ Dimensions      : largeur ≈ 35% écran, hauteur ≈ 50% écran
+│ Position initiale: 5% depuis gauche, 30% depuis haut
+│ Position fixe ? : oui (mais subit des rotations/shake aux impacts)
+│ Animée au repos ?: non
+│ Détails visuels : Fenêtres rectangulaires noires, briques dessinées, chenilles en bas
+│ Quantité initiale: 1
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Tour_Ennemie      │
+├─────────────────────────────────────┤
+│ Type            : ennemi
+│ Forme simplifiée: 2 rectangles superposés + 2 triangles (toits) + ovale (chenilles)
+│ Dimensions      : largeur ≈ 35% écran, hauteur ≈ 50% écran
+│ Position initiale: 60% depuis gauche, 30% depuis haut
+│ Position fixe ? : oui (mais subit des rotations/shake aux impacts)
+│ Animée au repos ?: non
+│ Détails visuels : Briques, toits rouges, se désintègre visuellement (pixels/blocs noirs)
+│ Quantité initiale: 1
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Personnage_Squelette │
+├─────────────────────────────────────┤
+│ Type            : joueur (unité)
+│ Forme simplifiée: Cercle (tête) posé sur petit rectangle (corps) + rectangle horizontal (arme)
+│ Dimensions      : largeur ≈ 8% écran, hauteur ≈ 8% écran
+│ Position initiale: 12% depuis gauche, 45% depuis haut
+│ Position fixe ? : oui (fixé sur une plateforme de la tour)
+│ Animée au repos ?: oui → léger rebond vertical de 2% hauteur toutes les 1000ms
+│ Détails visuels : Crâne blanc, corps bleu/gris, tient une arme grise
+│ Quantité initiale: 1
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Main_Tutoriel     │
+├─────────────────────────────────────┤
+│ Type            : UI
+│ Forme simplifiée: Combinaison d'ovales (main avec index tendu)
+│ Dimensions      : largeur ≈ 15% écran, hauteur ≈ 15% écran
+│ Position initiale: 15% depuis gauche, 45% depuis haut
+│ Position fixe ? : non
+│ Animée au repos ?: oui → translation diagonale vers la droite puis opacité 0, boucle
+│ Détails visuels : Main style cartoon avec gant blanc ou peau claire
+│ Quantité initiale: 1
+└─────────────────────────────────────┘
+
+─────────────────────────────────────────
+SECTION 2 — MACHINE À ÉTATS DU JEU
+─────────────────────────────────────────
+
+┌─────────────────────────────────────┐
+│ ÉTAT 1 : IDLE_BATTLE                │
+├─────────────────────────────────────┤
+│ Description     : Les tours sont face à face. La tour ennemie tire automatiquement. Le joueur attend d'agir. L'indication tuto (main) clignote.
+│ Durée           : jusqu'à événement (interaction du joueur ou mort d'une tour)
+│ Éléments actifs : Projectiles ennemis, Main_Tutoriel, animations idle personnages.
+│ Éléments gelés  : Base des tours, fond.
+│ Condition entrée: Début du jeu ou fin d'un tir du joueur.
+│ Condition sortie: Le joueur pose le doigt sur l'écran (sur un perso) OU HP=0.
+│ État suivant    : AIMING (si tap) ou GAME_OVER (si HP=0).
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ÉTAT 2 : AIMING                     │
+├─────────────────────────────────────┤
+│ Description     : Le joueur maintient son doigt appuyé et le déplace. Une ligne pointillée indique la trajectoire balistique. Le temps passe normalement (l'ennemi continue de tirer).
+│ Durée           : variable (tant que le doigt touche l'écran)
+│ Éléments actifs : Ligne pointillée (mise à jour continue), projectiles ennemis en vol.
+│ Éléments gelés  : Main_Tutoriel (disparaît).
+│ Condition entrée: Joueur tap et maintient sur la zone gauche (Tour_Joueur).
+│ Condition sortie: Joueur relâche le doigt (touchend).
+│ État suivant    : SHOOTING.
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ÉTAT 3 : SHOOTING                   │
+├─────────────────────────────────────┤
+│ Description     : La ligne disparaît, le projectile du joueur est instancié et suit la trajectoire calculée jusqu'à collision.
+│ Durée           : 1000ms à 1500ms (estimé, selon distance)
+│ Éléments actifs : Projectile joueur (mouvement), animations de la tour (recul minime).
+│ Éléments gelés  : Ligne pointillée (détruite).
+│ Condition entrée: Joueur relâche le doigt après AIMING.
+│ Condition sortie: Le projectile touche la hitbox de la Tour_Ennemie ou le sol.
+│ État suivant    : IMPACT (si touche) puis retour à IDLE_BATTLE.
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ÉTAT 4 : GAME_OVER                  │
+├─────────────────────────────────────┤
+│ Description     : L'une des tours voit ses HP atteindre 0%. Une grande animation d'explosion détruit la tour. Le texte "UNITS DESTROYED!" ou écran final apparaît.
+│ Durée           : infinie
+│ Éléments actifs : Particules d'explosion, popup UI finale.
+│ Éléments gelés  : Tous les personnages, armes, tours restantes.
+│ Condition entrée: HP_Joueur <= 0 ou HP_Ennemi <= 0.
+│ Condition sortie: Tap sur le bouton "PLAY".
+│ État suivant    : Redirection vers le store (hors périmètre).
+└─────────────────────────────────────┘
+
+─────────────────────────────────────────
+SECTION 3 — CYCLE ATOMIQUE DE JEU
+─────────────────────────────────────────
+
+Cycle : Le joueur effectue un tir et l'impact a lieu.
+
+- t = 0ms
+  - Déclencheur : Joueur pose le doigt (touchstart) sur un personnage.
+  - Visuel : La Main_Tutoriel disparaît (opacité 0).
+  - Sonore : Aucun.
+  - Données : Coordonnées de départ enregistrées.
+  - Branchement : Reste en mode AIMING tant que maintenu.
+
+- t = 300ms
+  - Déclencheur : Joueur déplace le doigt (touchmove).
+  - Visuel : Apparition de 10 à 15 petits cercles blancs (rayon 3px) le long d'une courbe quadratique entre le perso et la position extrapolée du doigt.
+  - Sonore : Aucun.
+  - Données : Vecteur force/angle calculé.
+  - Branchement : N/A.
+
+- t = 800ms
+  - Déclencheur : Joueur relâche le doigt (touchend).
+  - Visuel : Les cercles blancs disparaissent. Un sprite de roquette apparaît aux coordonnées du personnage.
+  - Sonore : Bruit de tir (décrit section 7).
+  - Données : Instanciation entité Projectile_Joueur avec vecteur vélocité.
+  - Branchement : Passe à la trajectoire autonome.
+
+- t = 801ms à 1999ms
+  - Déclencheur : Boucle de rendu (requestAnimationFrame).
+  - Visuel : La roquette se déplace en suivant une courbe de gravité. Rotation de l'image alignée sur le vecteur de mouvement. Fumée grise (5 cercles par seconde, opacité 1->0, scale 1->2) générée à l'arrière.
+  - Sonore : Aucun.
+  - Données : Mise à jour X/Y via vélocité + gravité.
+  - Branchement : Si Y > hauteur sol -> raté.
+
+- t = 2000ms
+  - Déclencheur : Collision AABB entre Projectile_Joueur et Tour_Ennemie.
+  - Visuel : Roquette disparaît. Flash d'explosion. Chunks (carrés gris/noirs) générés et projetés aléatoirement vers le bas/droite (gravité). Chiffre rouge flottant (ex: "-44") remonte de 5% Y et disparaît. La tour révèle une texture de briques noires (dégâts) à l'endroit de l'impact.
+  - Sonore : Bruit d'impact/explosion (décrit section 7).
+  - Données : HP_Ennemi décrémenté de X (selon dégâts de l'arme). Mise à jour texte UI HP.
+  - Branchement : Si HP_Ennemi <= 0 -> GAME_OVER (Victoire). Sinon -> IDLE_BATTLE.
+
+Chemin "joueur ne fait rien" :
+L'ennemi génère un projectile toutes les 1500ms (estimé). Ces projectiles frappent la tour du joueur, déclenchant l'effet visuel de destruction (blocs cassés, texte de dégâts) et réduisant l'UI HP Joueur. En environ 10 secondes (sans action du joueur), les HP Joueur atteignent 0, déclenchant le GAME_OVER (Défaite).
+
+─────────────────────────────────────────
+SECTION 4 — CATALOGUE DES ANIMATIONS
+─────────────────────────────────────────
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Traînée de fumée roquette│
+├─────────────────────────────────────┤
+│ Entité concernée  : Particule_Fumée (cercle généré par le projectile)
+│ Propriété animée  : opacité & scale
+│ Valeur de départ  : opacité 1.0, scale 1.0 (rayon 4px)
+│ Valeur d'arrivée  : opacité 0.0, scale 2.5 (rayon 10px)
+│ Durée             : 400ms
+│ Easing            : ease-out
+│ Se répète ?       : non (particule détruite à la fin)
+│ Déclencheur       : Instancié toutes les 50ms (estimé) par la roquette en vol.
+│ Se superpose à    : Mouvement de la roquette
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Dégâts Tour (Shake)     │
+├─────────────────────────────────────┤
+│ Entité concernée  : Tour_Joueur / Tour_Ennemie (base entière)
+│ Propriété animée  : rotation & position X
+│ Valeur de départ  : rotation 0°, X 0%
+│ Valeur d'arrivée  : rotation oscille entre -2° et 2°, X oscille de -1% à +1% puis retour 0
+│ Durée             : 300ms
+│ Easing            : linear (oscillation rapide)
+│ Se répète ?       : non (seulement à l'impact)
+│ Déclencheur       : Collision projectile / tour
+│ Se superpose à    : Destruction visuelle des blocs
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Chute de débris         │
+├─────────────────────────────────────┤
+│ Entité concernée  : Blocs détruits de la tour (rectangles variés)
+│ Propriété animée  : position Y, position X, rotation, opacité
+│ Valeur de départ  : Y impact, X impact, opacité 1.0
+│ Valeur d'arrivée  : Y sol (+40% depuis impact), X aléatoire (+/- 10%), opacité 0 à la fin
+│ Durée             : 800ms
+│ Easing            : ease-in (accélération gravitationnelle)
+│ Se répète ?       : non
+│ Déclencheur       : Collision projectile / tour
+│ Se superpose à    : Shake de la tour
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Popup dégâts (-HP)      │
+├─────────────────────────────────────┤
+│ Entité concernée  : Texte flottant (ex: "-44")
+│ Propriété animée  : position Y, opacité
+│ Valeur de départ  : Y impact, opacité 1.0
+│ Valeur d'arrivée  : Y impact - 5% écran, opacité 0.0
+│ Durée             : 600ms
+│ Easing            : ease-out
+│ Se répète ?       : non
+│ Déclencheur       : Collision projectile / tour
+│ Se superpose à    : N/A
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Main Tuto (Drag Hint)   │
+├─────────────────────────────────────┤
+│ Entité concernée  : Main_Tutoriel
+│ Propriété animée  : position X, position Y, opacité
+│ Valeur de départ  : X = 15%, Y = 45%, opacité 1.0
+│ Valeur d'arrivée  : X = 50%, Y = 20%, opacité 0.0 (en fin de course)
+│ Durée             : 1500ms
+│ Easing            : ease-in-out
+│ Se répète ?       : en boucle (tant que le joueur n'a pas touché)
+│ Déclencheur       : IDLE_BATTLE et aucun touch actif
+│ Se superpose à    : N/A
+└─────────────────────────────────────┘
+
+─────────────────────────────────────────
+SECTION 5 — MODÈLE D'INTERACTION EXACT
+─────────────────────────────────────────
+
+TYPE D'INPUT
+- Quel est le geste exact du joueur ? : Drag (Tap maintenu + mouvement directionnel pour viser + relâchement pour valider le tir).
+- Ce geste est-il le MÊME pendant toute la partie, ou change-t-il ? : C'est strictement le même geste tout au long du gameplay.
+- Y a-t-il plusieurs gestes différents ? : Un seul geste (Tap simple sur le bouton de fin, mais en gameplay c'est uniquement le Drag).
+
+ZONE D'INTERACTION
+- Où exactement sur l'écran le joueur doit-il interagir ? : Le joueur doit initier le Tap sur ou très près d'un personnage de sa tour (moitié gauche de l'écran, entre 40% et 80% de hauteur). Le mouvement (drag) peut ensuite aller n'importe où.
+- Y a-t-il des zones mortes où le tap ne fait rien ? : Oui, toucher la moitié droite de l'écran (Tour Ennemie) sans partir d'un personnage ne déclenche pas la visée.
+- Y a-t-il un bouton dédié ou l'écran entier est-il la zone ? : L'écran entier capte l'événement, mais il ne s'active que si les coordonnées initiales touchent la hitbox d'un de ses personnages.
+
+TIMING ET COOLDOWN
+- Y a-t-il un délai minimum entre deux actions ? : AUCUN COOLDOWN VISIBLE entre les personnages (le joueur peut techniquement switcher), cependant un personnage spécifique ne peut relancer de tir tant que son animation précédente n'est pas achevée (estimé à 500ms).
+- Que se passe-t-il si le joueur tape trop vite ? : Si un drag est avorté instantanément (tap simple), aucun tir ne part (ignoré). S'il drag très vite, le projectile part dès le touchend avec le vecteur calculé à ce moment précis.
+- Y a-t-il un indicateur visuel du cooldown ? : ABSENT.
+
+COMPORTEMENT SANS INTERACTION
+- Si le joueur ne fait rien, que se passe-t-il seconde par seconde ? : L'ennemi tire une salve de roquettes environ toutes les 1500 à 2000ms. Chaque roquette touche la tour du joueur et déduit entre 5% et 10% des HP du joueur.
+- À quel moment précis le jeu se termine-t-il si le joueur est passif ? : Au bout d'environ 15 à 20 secondes (le temps que les 100% de la barre de vie tombent à 0% sous les tirs ennemis), déclenchant l'écran de défaite ("BATTLE FAILED").
+
+─────────────────────────────────────────
+SECTION 6 — PROGRESSION ET DIFFICULTÉ
+─────────────────────────────────────────
+
+┌─────────────────────────────────────┐
+│ VAGUE 1 (Vague Unique Continue)     │
+├─────────────────────────────────────┤
+│ Début           : t = 0ms
+│ Fin             : Condition (HP_Joueur <= 0 ou HP_Ennemi <= 0)
+│ Ennemis simultanés : 1 (La Tour_Ennemie globale)
+│ Vitesse ennemi  : 0ms (La tour est statique horizontalement)
+│ Intervalle spawn: 1500ms (intervalle entre chaque tir ennemi)
+│ PV par ennemi   : 100% (environ 10 à 15 hits requis avec le squelette)
+│ Changement visuel: La tour ennemie noircit et perd des morceaux (révélation d'une texture noire interne) à mesure que ses HP baissent.
+│ Événement spécial: ABSENT
+└─────────────────────────────────────┘
+
+- La difficulté augmente-t-elle progressivement ou par paliers ? : La difficulté est statique (le rythme de tir ennemi semble constant).
+- Y a-t-il une limite de temps visible ? : ABSENT.
+- Qu'est-ce qui déclenche la fin du jeu ? : L'une des barres de vie (Joueur ou Ennemi) atteint 0%.
+
+─────────────────────────────────────────
+SECTION 7 — DESIGN SONORE
+─────────────────────────────────────────
+
+┌─────────────────────────────────────┐
+│ SON : Tir de Roquette               │
+├─────────────────────────────────────┤
+│ Déclencheur     : Joueur relâche le doigt (touchend) après la visée.
+│ Caractère       : Aigu, sifflant, court, dynamique (swoosh).
+│ Durée estimée   : 300ms
+│ Fréquence approx: 600Hz (descend vers 200Hz)
+│ Forme d'onde    : sawtooth (ou bruit filtré)
+│ Déclin          : S'estompe rapidement.
+│ Instruction Web Audio API :
+│ `const osc = ctx.createOscillator(); osc.type = 'sawtooth';`
+│ `osc.frequency.setValueAtTime(600, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.3);`
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ SON : Impact / Explosion            │
+├─────────────────────────────────────┤
+│ Déclencheur     : Collision du projectile avec une tour.
+│ Caractère       : Grave, brutal, fracassant.
+│ Durée estimée   : 600ms
+│ Fréquence approx: 100Hz
+│ Forme d'onde    : square (pitché très bas pour simuler le bruit/rumble)
+│ Déclin          : Déclin linéaire modéré.
+│ Instruction Web Audio API :
+│ `const osc = ctx.createOscillator(); osc.type = 'square';`
+│ `osc.frequency.setValueAtTime(100, ctx.currentTime); osc.frequency.linearRampToValueAtTime(10, ctx.currentTime + 0.6);`
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ SON : UI Popup Fin (Victoire/Défaite)│
+├─────────────────────────────────────┤
+│ Déclencheur     : Apparition de l'écran BATTLE FAILED ou UNITS DESTROYED.
+│ Caractère       : Grave, descendant (défaite) ou tintement (victoire).
+│ Durée estimée   : 1000ms
+│ Fréquence approx: 300Hz -> 100Hz
+│ Forme d'onde    : sine
+│ Déclin          : S'estompe progressivement.
+│ Instruction Web Audio API :
+│ `const osc = ctx.createOscillator(); osc.type = 'sine';`
+│ `osc.frequency.setValueAtTime(300, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 1.0);`
+└─────────────────────────────────────┘
+
+─────────────────────────────────────────
+SECTION 8 — PARAMÈTRES CONFIGURABLES
+─────────────────────────────────────────
+
+```javascript
+const CONFIG = {
+  // ── TIMING ──────────────────────────────
+  gameDuration          : 60,    // secondes totales théoriques avant mort passive (estimé large, la partie dure 48s dans la vidéo)
+  projectileSpeed       : 1500,  // ms pour traverser environ 50% de l'écran en courbe
+  projectileCooldown    : 500,   // ms entre deux tirs possibles pour le même perso
+
+  // ── ENNEMIS (Tour Droite) ───────────────
+  enemyBaseSpeed        : 0,     // ms (statique)
+  enemySpeedMultiplier  : 1,     // pas de changement de vitesse
+  enemySpawnInterval    : 1500,  // ms entre chaque tir automatique ennemi (estimé)
+  enemyMaxSimultaneous  : 1,     // 1 tour ennemie présente
+  enemyHitPoints        : 1000,  // valeur absolue estimée (100% de la barre, dégâts moyens 40-100 par hit = 10 à 25 hits)
+
+  // ── JOUEUR (Tour Gauche) ────────────────
+  playerLives           : 100,   // Exprimé en % de HP plutôt qu'en cœurs
+  playerBaseHealth      : 1000,  // valeur absolue estimée pour correspondre aux dégâts ennemis
+  
+  // ── PROGRESSION ─────────────────────────
+  waveCount             : 1,     // 1 seule phase continue
+
+  // ── SCORING ─────────────────────────────
+  pointsPerKill         : 0,     // Pas de score classique, uniquement des dégâts flottants
+
+  // ── COULEURS ────────────────────────────
+  colorBackground       : "#A9C298", // Vert d'eau/ciel (estimé)
+  colorPlayer           : "#275BB5", // Bleu (Toit tour gauche)
+  colorEnemy            : "#A32020", // Rouge (Toit tour droite)
+  colorProjectile       : "#888888", // Gris
+  colorUI               : "#3A8AEE", // Bleu HP bar
+  colorText             : "#FFFFFF", // Blanc
+
+  // ── DIMENSIONS ──────────────────────────
+  // exprimées en % de l'écran (L x H)
+  playerWidth           : 35,    // % largeur écran
+  playerHeight          : 50,    // % hauteur écran
+  enemyWidth            : 35,
+  enemyHeight           : 50,
+  projectileWidth       : 4,
+  projectileHeight      : 4,     // Dessiné comme un petit polygone ou cercle
+  uiBarWidth            : 40,
+  uiBarHeight           : 4
+};
+```
+
+─────────────────────────────────────────
+SECTION 9 — CE QUI N'EXISTE PAS DANS CE JEU
+─────────────────────────────────────────
+
+□ Niveaux multiples : ABSENT
+□ Système d'upgrade ou d'achat : ABSENT
+□ Différents types d'ennemis : ABSENT (Une seule tour)
+□ Ennemis avec animations d'entrée : ABSENT
+□ Power-ups ou bonus collectables : ABSENT
+□ Bouton pause : ABSENT
+□ Tutoriel in-game : PRÉSENT (Main animée indiquant de dragger vers la droite)
+□ Timer visible à l'écran : ABSENT
+□ Barre de progression de vague : ABSENT
+□ Musique de fond : ABSENT (Uniquement sound effects observés)
+□ Effets de parallaxe sur le décor : ABSENT
+□ Animations de décor (nuages, arbres qui bougent) : ABSENT (Statique)
+□ Différents types de projectiles : PRÉSENT (Roquettes visuellement identifiées, même comportement)
+□ Zone de tap dédiée (bouton visible) : ABSENT (L'écran entier / les personnages agissent de zone)
+□ Leaderboard ou meilleur score : ABSENT
+□ Bouton de rejouer visible en cours de partie : ABSENT
+
+─────────────────────────────────────────
+SECTION 10 — CHECKLIST DE VALIDATION FINALE
+─────────────────────────────────────────
+
+□ Un développeur sait exactement combien d'entités sont à l'écran à t=0 : OUI
+□ Chaque entité peut être dessinée avec du CSS/Canvas sans image externe : OUI
+□ Toutes les durées sont en millisecondes : OUI
+□ Toutes les positions sont en pourcentage de l'écran : OUI
+□ Le comportement si le joueur ne fait RIEN est entièrement décrit : OUI
+□ Le déclencheur exact du game over est identifié : OUI
+□ Le déclencheur exact de la victoire est identifié : OUI
+□ L'écran de fin (CTA) est entièrement décrit : OUI
+□ Chaque son peut être reproduit avec Web Audio API sans fichier audio : OUI
+□ L'objet CONFIG contient toutes les valeurs numériques du jeu : OUI
+□ Les éléments ABSENTS sont explicitement listés : OUI
+□ Aucun champ n'est laissé vide : OUI

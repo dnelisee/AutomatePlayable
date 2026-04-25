@@ -1,0 +1,526 @@
+─────────────────────────────────────────
+SECTION 0 — MÉTADONNÉES
+─────────────────────────────────────────
+- Nom du jeu : Castle Clashers
+- Durée totale de la vidéo : 00:55
+- Durée d'une partie complète observée : 00:50
+- Orientation : portrait
+- Ratio d'aspect approximatif : 9:16
+- Nombre de parties jouées dans la vidéo : 1
+
+─────────────────────────────────────────
+SECTION 0-BIS — INVENTAIRE DES ASSETS DISPONIBLES
+─────────────────────────────────────────
+Aucun fichier fourni dans le dossier /assets. Tous les éléments visuels nécessitent une génération ou un tracé géométrique.
+
+─────────────────────────────────────────
+SECTION 1 — PHOTOGRAPHIE DE L'ÉCRAN INITIAL
+─────────────────────────────────────────
+
+1.1 — SCHÉMA ASCII DE DISPOSITION
++---------------------------------------+
+|  [BARRE BLEUE]   VS   [BARRE ROUGE]   | 0% - 10% (Top UI)
+|   [ICONE] 100%          [ICONE] 100%  |
+|                                       |
+|                                       |
+|           [NUAGES / FOND]             | 10% - 40% (Ciel)
+|                                       |
+|                                       |
+|   [CHÂTEAU GAUCHE]  [CHÂTEAU DROIT]   | 40% - 80% (Zone de jeu)
+|   (CHENILLES)       (CHENILLES)       |
+|                                       |
+|---------------------------------------| 80% (Ligne de sol)
+|            [LAVE / SOUS-SOL]          | 80% - 85%
+|                                       |
+|  [CARTE 1]   [CARTE 2]   [CARTE 3]    | 85% - 100% (Bottom UI)
++---------------------------------------+
+
+1.2 — PALETTE DE COULEURS COMPLÈTE
+| Nom de l'élément | Description couleur | Hex approximatif | Opacité |
+|------------------|---------------------|------------------|---------|
+| Ciel (Fond)      | Vert/jaune clair    | #CDE6B4 (estimé) | 100%    |
+| Montagnes (Fond) | Vert pastel         | #A1C68A (estimé) | 100%    |
+| Sol              | Marron foncé        | #4E3B31 (estimé) | 100%    |
+| Lave             | Rouge sombre        | #7A1A1A (estimé) | 100%    |
+| Mur Château      | Gris clair (pierre) | #D3D3D3 (estimé) | 100%    |
+| Toit Bleu        | Bleu roi            | #3B82F6 (estimé) | 100%    |
+| Toit Rouge       | Rouge cramoisi      | #DC2626 (estimé) | 100%    |
+| Cyclope          | Rouge vif           | #EF4444 (estimé) | 100%    |
+| Squelette        | Gris/Blanc          | #E5E7EB (estimé) | 100%    |
+| Gobelin          | Vert                | #22C55E (estimé) | 100%    |
+| Barre de vie UI  | Bleu et Rouge       | #3B82F6 / #DC2626| 100%    |
+| Texte score      | Noir et Blanc       | #000000 / #FFFFFF| 100%    |
+| Fond Cartes UI   | Gris sombre transparent | #1F2937 (estimé)| 80%     |
+
+1.3 — INVENTAIRE COMPLET DES ENTITÉS
+
+┌─────────────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Fond_Ciel_Montagnes       │
+├─────────────────────────────────────────────┤
+│ Type              : décor
+│ ASSET ASSIGNÉ     : GÉNÉRATION REQUISE
+│ Si GÉNÉRATION REQUISE — prompt de génération :
+│   "Fond 2D style cartoon vectoriel, ciel vert/jaune très clair, collines
+│    vertes arrondies en arrière-plan, quelques nuages simples gris-verts.
+│    Format portrait 9:16."
+│ Dimensions        : largeur ≈ 100% écran, hauteur ≈ 80% écran
+│ Position initiale : 0% depuis gauche, 0% depuis haut
+│ Position fixe ?   : oui (avec léger parallaxe horizontal)
+│ Animée au repos ? : non
+│ Quantité initiale : 1
+│ Détails visuels   : Sert de toile de fond, tons très pastel.
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Base_Sol_Lave             │
+├─────────────────────────────────────────────┤
+│ Type              : décor
+│ ASSET ASSIGNÉ     : GÉNÉRATION REQUISE
+│ Si GÉNÉRATION REQUISE — prompt de génération :
+│   "Coupe transversale du sol style cartoon. Haut: herbe verte fine. 
+│    Milieu: terre marron foncé avec cailloux. Bas: liquide rouge/lave
+│    avec gouttes tombant vers le bas. Fond transparent en haut."
+│ Dimensions        : largeur ≈ 100% écran, hauteur ≈ 20% écran
+│ Position initiale : 0% depuis gauche, 80% depuis haut
+│ Position fixe ?   : oui
+│ Animée au repos ? : oui → particules de lave chutent vers le bas (boucle)
+│ Quantité initiale : 1
+│ Détails visuels   : Délimite la zone jouable des UI du bas.
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Chateau_Joueur            │
+├─────────────────────────────────────────────┤
+│ Type              : joueur
+│ ASSET ASSIGNÉ     : GÉNÉRATION REQUISE
+│ Si GÉNÉRATION REQUISE — prompt de génération :
+│   "Tour de château en pierre vue de profil (2D cartoon). Murs gris avec
+│    briques apparentes. Toits pointus bleus. Montée sur deux chenilles
+│    de tank marron/métal. Intérieur vide/noir avec 4 plateformes en bois.
+│    Fond transparent."
+│ Dimensions        : largeur ≈ 35% écran, hauteur ≈ 50% écran
+│ Position initiale : 10% depuis gauche, 30% depuis haut
+│ Position fixe ?   : oui (oscille légèrement)
+│ Animée au repos ? : oui → légère rotation (pitch) ±2 degrés sur 2000ms
+│ Quantité initiale : 1
+│ Détails visuels   : Incliné vers l'arrière d'environ 10 degrés.
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Chateau_Ennemi            │
+├─────────────────────────────────────────────┤
+│ Type              : ennemi
+│ ASSET ASSIGNÉ     : GÉNÉRATION REQUISE
+│ Si GÉNÉRATION REQUISE — prompt de génération :
+│   "Tour de château en pierre vue de profil (2D cartoon), symétrique à 
+│    celle du joueur. Murs gris. Toits pointus rouges. Montée sur deux 
+│    chenilles de tank. Intérieur noir avec plateformes. Fond transparent."
+│ Dimensions        : largeur ≈ 35% écran, hauteur ≈ 50% écran
+│ Position initiale : 55% depuis gauche, 30% depuis haut
+│ Position fixe ?   : oui (oscille légèrement)
+│ Animée au repos ? : oui → légère rotation ±2 degrés sur 2000ms
+│ Quantité initiale : 1
+│ Détails visuels   : Incliné vers l'avant d'environ 10 degrés.
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : UI_Barre_Vie              │
+├─────────────────────────────────────────────┤
+│ Type              : UI
+│ ASSET ASSIGNÉ     : CANVAS GÉOMÉTRIQUE
+│ Si CANVAS GÉOMÉTRIQUE — forme simplifiée :
+│   "Deux rectangles horizontaux opposés en haut de l'écran. 
+│    Gauche : fillStyle '#3B82F6', Droite : fillStyle '#DC2626'. 
+│    Un carré central noir avec texte 'VS' blanc."
+│ Dimensions        : largeur ≈ 45% écran (chacune), hauteur ≈ 4% écran
+│ Position initiale : 0% gauche (Bleue), 55% gauche (Rouge), 0% haut
+│ Position fixe ?   : oui
+│ Animée au repos ? : non
+│ Quantité initiale : 2 (une bleue, une rouge)
+│ Détails visuels   : Bordure noire 2px.
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : UI_Carte_Unite            │
+├─────────────────────────────────────────────┤
+│ Type              : UI
+│ ASSET ASSIGNÉ     : GÉNÉRATION REQUISE
+│ Si GÉNÉRATION REQUISE — prompt de génération :
+│   "Cadre carré gris foncé avec bordure métallique, style UI de jeu mobile.
+│    Fond quadrillé noir/gris. Transparent à l'extérieur du cadre."
+│ Dimensions        : largeur ≈ 25% écran, hauteur ≈ 12% écran
+│ Position initiale : 10%, 37.5%, 65% depuis gauche, 86% depuis haut
+│ Position fixe ?   : oui
+│ Animée au repos ? : non
+│ Quantité initiale : 3
+│ Détails visuels   : Contiennent les portraits des unités.
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Main_Tutoriel             │
+├─────────────────────────────────────────────┤
+│ Type              : UI
+│ ASSET ASSIGNÉ     : GÉNÉRATION REQUISE
+│ Si GÉNÉRATION REQUISE — prompt de génération :
+│   "Main blanche cartoon avec l'index pointé, style curseur de souris / 
+│    tutoriel mobile. Ombre portée légère. Fond transparent."
+│ Dimensions        : largeur ≈ 15% écran, hauteur ≈ 8% écran
+│ Position initiale : 45% depuis gauche, 40% depuis haut
+│ Position fixe ?   : non
+│ Animée au repos ? : oui → mouvement de translation pour indiquer une action
+│ Quantité initiale : 1
+│ Détails visuels   : Guide le joueur vers la première interaction.
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│ NOM DE L'ENTITÉ : Projectile_Roquette       │
+├─────────────────────────────────────────────┤
+│ Type              : projectile
+│ ASSET ASSIGNÉ     : CANVAS GÉOMÉTRIQUE
+│ Si CANVAS GÉOMÉTRIQUE — forme simplifiée :
+│   "Cylindre (rectangle aux coins arrondis) rouge avec bout gris.
+│    + Traînée de particules grises (cercles opacity décroissante)."
+│ Dimensions        : largeur ≈ 4% écran, hauteur ≈ 1.5% écran
+│ Position initiale : Hors écran ou généré dynamiquement
+│ Position fixe ?   : non
+│ Animée au repos ? : non (n'existe pas au repos)
+│ Quantité initiale : 0
+│ Détails visuels   : Laisse une traînée de fumée grise.
+└─────────────────────────────────────────────┘
+
+─────────────────────────────────────────
+SECTION 2 — MACHINE À ÉTATS DU JEU
+─────────────────────────────────────────
+
+┌─────────────────────────────────────┐
+│ ÉTAT 1 : TUTORIAL_IDLE              │
+├─────────────────────────────────────┤
+│ Description      : Le jeu est en pause, une main montre comment jouer.
+│ Durée            : infinie / jusqu'à événement
+│ Éléments actifs  : Main_Tutoriel (animation drag), UI oscillante.
+│ Éléments gelés   : Projectiles, dégâts, barre de vie.
+│ Condition entrée : Lancement du jeu.
+│ Condition sortie : Le joueur effectue un drag & drop valide.
+│ État suivant     : BATTLE_ACTIVE
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ÉTAT 2 : BATTLE_ACTIVE              │
+├─────────────────────────────────────┤
+│ Description      : Les unités tirent automatiquement, les châteaux se cassent.
+│ Durée            : variable (jusqu'à ce qu'une barre atteigne 0%)
+│ Éléments actifs  : Unités (tirs), Projectiles, Châteaux (animations dégâts), Particules.
+│ Éléments gelés   : Aucun.
+│ Condition entrée : Drag & drop de la première unité.
+│ Condition sortie : HP Bleu ≤ 0 OU HP Rouge ≤ 0.
+│ État suivant     : GAME_OVER
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ÉTAT 3 : GAME_OVER                  │
+├─────────────────────────────────────┤
+│ Description      : L'action s'arrête, apparition de la popup de fin.
+│ Durée            : infinie
+│ Éléments actifs  : Popup "BATTLE FAILED" ou "VICTORY", bouton PLAY.
+│ Éléments gelés   : Tous les éléments en arrière-plan (qui sont grisés/floutés).
+│ Condition entrée : HP Bleu ≤ 0 OU HP Rouge ≤ 0.
+│ Condition sortie : Tap sur le bouton PLAY.
+│ État suivant     : Redirection (hors scope jouable)
+└─────────────────────────────────────┘
+
+─────────────────────────────────────────
+SECTION 3 — CYCLE ATOMIQUE DE JEU
+─────────────────────────────────────────
+
+Boucle unitaire horodatée (chemin "joueur réussit une action") :
+- t = 0ms : La `Main_Tutoriel` fait un va-et-vient entre la `UI_Carte_Unite` (Squelette) et une plateforme du `Chateau_Joueur`.
+- t = 1000ms : Le joueur touche la carte UI (déclencheur).
+- t = 1200ms : Le joueur glisse son doigt vers la plateforme et relâche (déclencheur).
+- t = 1201ms : L'unité (Squelette) apparaît sur la plateforme. Audio : Son pop d'apparition.
+- t = 1500ms : L'unité génère un `Projectile_Roquette`. Audio : Son de tir.
+- t = 1500ms à 2000ms : Le projectile traverse l'écran de gauche à droite.
+- t = 2000ms : Le projectile intersecte le `Chateau_Ennemi`. 
+- t = 2001ms : Disparition du projectile. Création de particules d'explosion (flash blanc + cercles gris et orange). Audio : Impact grave.
+- t = 2050ms : Texte flottant de dégâts ("-44") apparaît et monte en s'effaçant. La barre de vie rouge diminue de X%.
+- t = 2100ms : Un bloc visuel du château ennemi se détache et tombe avec gravité + rotation.
+
+Branchement "joueur ne fait rien" :
+- La `Main_Tutoriel` continue de boucler à l'infini. Le jeu reste figé.
+
+Branchement "joueur échoue (tap hors zone)" :
+- L'unité n'est pas placée, retourne dans la carte UI.
+
+─────────────────────────────────────────
+SECTION 4 — CATALOGUE DES ANIMATIONS
+─────────────────────────────────────────
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Drag_Tutoriel           │
+├─────────────────────────────────────┤
+│ Entité concernée   : Main_Tutoriel
+│ Propriété animée   : Position (X, Y)
+│ Valeur de départ   : 50% X, 90% Y (Sur la carte du milieu)
+│ Valeur d'arrivée   : 30% X, 50% Y (Sur le château gauche)
+│ Durée              : 1200ms
+│ Easing             : ease-in-out
+│ Se répète ?        : boucle
+│ Déclencheur        : Début du jeu
+│ Simultanée avec    : Scale léger (pulsation) au départ
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Vol_Projectile          │
+├─────────────────────────────────────┤
+│ Entité concernée   : Projectile_Roquette
+│ Propriété animée   : Position X, Y
+│ Valeur de départ   : Position de l'unité tireuse
+│ Valeur d'arrivée   : Position cible sur château ennemi
+│ Durée              : 500ms (estimé)
+│ Easing             : linear
+│ Se répète ?        : non
+│ Déclencheur        : Fin du cooldown de tir de l'unité
+│ Simultanée avec    : Traînée de particules (génération continue)
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Chute_Debris            │
+├─────────────────────────────────────┤
+│ Entité concernée   : Morceau de château (Généré dynamiquement)
+│ Propriété animée   : Position Y, Rotation, Opacité
+│ Valeur de départ   : Y = point d'impact, Rot = 0, Opacité = 1
+│ Valeur d'arrivée   : Y = +50% (vers le bas), Rot = 180deg, Opacité = 0
+│ Durée              : 1000ms
+│ Easing             : ease-in (gravité)
+│ Se répète ?        : non
+│ Déclencheur        : Impact de projectile
+│ Simultanée avec    : Particules d'explosion
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Flottaison_Degats       │
+├─────────────────────────────────────┤
+│ Entité concernée   : Texte "-X" (ex: "-44")
+│ Propriété animée   : Position Y, Opacité
+│ Valeur de départ   : Y = point d'impact, Opacité = 1
+│ Valeur d'arrivée   : Y = Y - 10%, Opacité = 0
+│ Durée              : 800ms
+│ Easing             : ease-out
+│ Se répète ?        : non
+│ Déclencheur        : Impact de projectile
+│ Simultanée avec    : Réduction de la barre de vie
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ANIMATION : Apparition_GameOver     │
+├─────────────────────────────────────┤
+│ Entité concernée   : UI Écran de fin
+│ Propriété animée   : Scale, Opacité (Fond)
+│ Valeur de départ   : Scale = 0.5, Opacité = 0
+│ Valeur d'arrivée   : Scale = 1, Opacité = 1
+│ Durée              : 400ms
+│ Easing             : bounce (ressort)
+│ Se répète ?        : non
+│ Déclencheur        : HP d'un château = 0%
+│ Simultanée avec    : Flou de l'arrière-plan
+└─────────────────────────────────────┘
+
+─────────────────────────────────────────
+SECTION 5 — MODÈLE D'INTERACTION EXACT
+─────────────────────────────────────────
+
+TYPE D'INPUT
+- Drag & Drop (Glisser-déposer) OU Tap Séquentiel. 
+- Le joueur touche une `UI_Carte_Unite` en bas, maintient, glisse vers une plateforme vide du `Chateau_Joueur`, et relâche.
+- Alternative observée : Tap sur la carte, puis Tap sur la plateforme.
+
+ZONE D'INTERACTION
+- Zones de départ : Les 3 carrés UI en bas (largeur ≈ 25%, hauteur ≈ 12% chacun, positionnés en bas de l'écran).
+- Zones d'arrivée : ~4 "slots" (plateformes) visibles à l'intérieur du `Chateau_Joueur` (situés entre X=10% à 30%, Y=40% à 70%).
+- Zones mortes : Tout le reste de l'écran. Si relâché dans une zone morte, l'action est annulée.
+
+TIMING ET COOLDOWN
+- Cooldown placement : AUCUN COOLDOWN VISIBLE pour le placement, mais limité par le nombre de slots vides (max 4-5).
+- Une fois placée, l'unité gère son propre cooldown de tir automatiquement (environ 1 tir toutes les 1500ms).
+
+COMPORTEMENT SANS INTERACTION
+- Phase 1 (Tutoriel) : Le jeu attend indéfiniment. Rien ne se passe à part les animations de décor/tutoriel.
+- Phase 2 (Après 1er placement) : Les ennemis attaquent le joueur à intervalles réguliers. Si le joueur devient passif, son château perd des PV jusqu'à 0%, déclenchant l'écran BATTLE FAILED.
+
+─────────────────────────────────────────
+SECTION 6 — PROGRESSION ET DIFFICULTÉ
+─────────────────────────────────────────
+
+┌─────────────────────────────────────┐
+│ VAGUE 1                             │
+├─────────────────────────────────────┤
+│ Début              : Au premier placement d'unité.
+│ Fin                : Quand les HP d'un château atteignent 0%.
+│ Ennemis simultanés : Tirs continus reçus, générés par le système (2-3 projectiles simultanés à l'écran).
+│ Vitesse projectile : 500ms pour traverser l'écran.
+│ Intervalle spawn   : Les tirs ennemis partent toutes les 1000ms (estimé).
+│ PV par ennemi      : Château = 100% (Environ 10 à 15 impacts pour détruire un château).
+│ Changement visuel  : Les châteaux se détruisent physiquement (murs noirs révélés, tours qui tombent).
+│ Événement spécial  : ABSENT
+└─────────────────────────────────────┘
+
+Progression : Linéaire. L'échange de tirs est continu jusqu'à destruction.
+Timer visible : ABSENT.
+Ce qui déclenche la fin : HP du joueur ou de l'ennemi <= 0.
+
+─────────────────────────────────────────
+SECTION 7 — DESIGN SONORE
+─────────────────────────────────────────
+
+┌─────────────────────────────────────┐
+│ SON : Tir_Unite                     │
+├─────────────────────────────────────┤
+│ Déclencheur      : Unité lance un projectile
+│ Caractère        : Sec, aigu, rapide
+│ Durée estimée    : 150ms
+│ Fréquence approx : 800Hz à 400Hz (pitch drop)
+│ Forme d'onde     : sawtooth + noise
+│ Déclin           : s'estompe rapidement (exponentialRampToValueAtTime)
+│ Web Audio API    : OscillatorNode (sawtooth) + BiquadFilterNode (highpass)
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ SON : Impact_Chateau                │
+├─────────────────────────────────────┤
+│ Déclencheur      : Projectile touche un château
+│ Caractère        : Grave, sourd, bruit d'explosion
+│ Durée estimée    : 400ms
+│ Fréquence approx : 100Hz
+│ Forme d'onde     : square + forte dose de white noise (buffer)
+│ Déclin           : s'estompe
+│ Web Audio API    : AudioBufferSourceNode (bruit blanc) + GainNode
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ SON : Bouton_UI                     │
+├─────────────────────────────────────┤
+│ Déclencheur      : Tap sur UI ou bouton Play
+│ Caractère        : Aigu, clair, "pop"
+│ Durée estimée    : 100ms
+│ Fréquence approx : 1200Hz
+│ Forme d'onde     : sine
+│ Déclin           : coupe net
+│ Web Audio API    : OscillatorNode (sine)
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ SON : GameOver_Fail                 │
+├─────────────────────────────────────┤
+│ Déclencheur      : Apparition écran "BATTLE FAILED"
+│ Caractère        : Grave, descendant, cuivré
+│ Durée estimée    : 1500ms
+│ Fréquence approx : 400Hz -> 200Hz -> 100Hz
+│ Forme d'onde     : sawtooth
+│ Déclin           : s'estompe lentement
+│ Web Audio API    : OscillatorNode avec setValueCurveAtTime sur freq
+└─────────────────────────────────────┘
+
+Musique de fond : ABSENT.
+
+─────────────────────────────────────────
+SECTION 8 — PARAMÈTRES CONFIGURABLES
+─────────────────────────────────────────
+
+```javascript
+const CONFIG = {
+  // TIMING
+  gameDuration          : 60000, // Sécurité max
+  projectileSpeed       : 500,   // ms pour traverser
+  projectileCooldown    : 1500,  // ms entre deux tirs d'unité
+
+  // ENNEMIS (Dégâts reçus)
+  enemyFireInterval     : 1200,  // ms entre les tirs du château ennemi
+  enemyHitPoints        : 100,   // %
+  damagePerHitToEnemy   : 8,     // % perdu par le château ennemi par hit
+
+  // JOUEUR
+  playerHitPoints       : 100,   // %
+  damagePerHitToPlayer  : 10,    // % perdu par le château joueur par hit
+
+  // PROGRESSION
+  waveCount             : 1,
+  waveSpeedIncrease     : 0,
+
+  // SCORING
+  pointsPerKill         : 0,     // Non applicable au score direct, trophées finaux fixes (2278)
+
+  // COULEURS
+  colorBackground       : "#CDE6B4",
+  colorPlayer           : "#3B82F6",
+  colorEnemy            : "#DC2626",
+  colorProjectile       : "#333333",
+  colorUI               : "#1F2937",
+  colorText             : "#FFFFFF",
+
+  // DIMENSIONS (fractions de l'écran)
+  playerWidthRatio      : 0.35,
+  playerHeightRatio     : 0.50,
+  enemyWidthRatio       : 0.35,
+  enemyHeightRatio      : 0.50,
+  projectileWidthRatio  : 0.04,
+  projectileHeightRatio : 0.015,
+};
+```
+
+─────────────────────────────────────────
+SECTION 9 — RÉCAPITULATIF ASSETS
+─────────────────────────────────────────
+
+| Entité                | Décision           | Fichier ou action                                        |
+|-----------------------|--------------------|----------------------------------------------------------|
+| Fond_Ciel_Montagnes   | GÉNÉRATION REQUISE | Décor 2D cartoon, collines vertes, ciel pastel 9:16.     |
+| Base_Sol_Lave         | GÉNÉRATION REQUISE | Coupe sol 2D, herbe, terre, lave en bas, transparent haut|
+| Chateau_Joueur        | GÉNÉRATION REQUISE | Château pierre gris, toit bleu, chenilles de tank, vide  |
+| Chateau_Ennemi        | GÉNÉRATION REQUISE | Château pierre gris, toit rouge, chenilles, vide dedans  |
+| Unite_Squelette       | GÉNÉRATION REQUISE | Squelette 2D cartoon avec fusil. Transparent.            |
+| Unite_Cyclope         | GÉNÉRATION REQUISE | Cyclope rouge 2D cartoon. Transparent.                   |
+| Unite_Gobelin         | GÉNÉRATION REQUISE | Gobelin vert 2D cartoon avec lance-pierre. Transparent.  |
+| UI_Carte_Unite        | GÉNÉRATION REQUISE | Cadre carré UI mobile sombre avec bordure. Transparent ext.|
+| Main_Tutoriel         | GÉNÉRATION REQUISE | Main blanche pointant l'index, style UI. Transparent.    |
+| UI_Barre_Vie          | CANVAS GÉOMÉTRIQUE | Rectangles bleu et rouge avec texte "100%" au centre.    |
+| Projectile_Roquette   | CANVAS GÉOMÉTRIQUE | Rectangle arrondi rouge/gris + cercles particules grises.|
+| Popup_Fin             | CANVAS GÉOMÉTRIQUE | Rectangle arrondi rouge avec ombre portée noire.         |
+| Bouton_Play           | CANVAS GÉOMÉTRIQUE | Rectangle arrondi orange vif avec texte blanc "PLAY".    |
+
+─────────────────────────────────────────
+SECTION 10 — CE QUI N'EXISTE PAS
+─────────────────────────────────────────
+
+□ Niveaux multiples             → ABSENT
+□ Système d'upgrade             → ABSENT
+□ Différents types d'ennemis    → ABSENT (Les ennemis sont des projectiles automatiques reçus)
+□ Animations d'entrée ennemis   → ABSENT
+□ Power-ups collectables        → ABSENT
+□ Bouton pause                  → ABSENT
+□ Tutoriel in-game              → PRÉSENT (Main animée)
+□ Timer visible                 → ABSENT
+□ Barre de progression de vague → ABSENT
+□ Musique de fond               → ABSENT
+□ Effets de parallaxe           → PRÉSENT (Nuages en fond potentiellement)
+□ Animations de décor           → PRÉSENT (Lave/particules)
+□ Différents projectiles        → PRÉSENT (Missiles vs balles, visuellement distincts)
+□ Zone de tap dédiée (bouton)   → PRÉSENT (Cartes en bas)
+□ Leaderboard / meilleur score  → ABSENT
+□ Bouton rejouer en cours       → ABSENT
+
+─────────────────────────────────────────
+SECTION 11 — CHECKLIST DE VALIDATION
+─────────────────────────────────────────
+
+[x] Chaque entité a une décision asset claire (TROUVÉ/GÉNÉRÉ/CANVAS)
+[x] Chaque GÉNÉRATION REQUISE a un prompt de génération complet
+[x] Un développeur sait exactement combien d'entités sont à l'écran à t=0
+[x] Toutes les durées sont en millisecondes
+[x] Toutes les positions sont en pourcentage de l'écran
+[x] Le comportement sans interaction est entièrement décrit
+[x] Le déclencheur du game over est identifié
+[x] Le déclencheur de la victoire est identifié
+[x] L'écran CTA est entièrement décrit
+[x] Chaque son peut être reproduit par Web Audio API
+[x] L'objet CONFIG contient toutes les valeurs numériques
+[x] Les éléments ABSENTS sont explicitement listés
+[x] Aucun champ n'est vide
