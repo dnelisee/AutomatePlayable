@@ -1,0 +1,98 @@
+{
+  "game_feel": {
+    "genre": "physics_based_castle_defense",
+    "camera": "static",
+    "pov": "side_view",
+    "overall_pace": "medium"
+  },
+  "player": {
+    "movement": {
+      "walks": false,
+      "runs": false,
+      "jumps": false,
+      "double_jump": null,
+      "estimated_speed_relative": "slow"
+    },
+    "attacks": [
+      {
+        "name": "red_cyclops_bomb",
+        "input": "drag_and_drop",
+        "visual": "large arcing explosive projectile",
+        "hits_before_knockback": null,
+        "range": "ranged",
+        "has_combo": false,
+        "combo_length": null
+      },
+      {
+        "name": "skeleton_rocket_barrage",
+        "input": "drag_and_drop",
+        "visual": "multiple rapid-fire rockets with smoke trails",
+        "hits_before_knockback": null,
+        "range": "ranged",
+        "has_combo": false,
+        "combo_length": null
+      },
+      {
+        "name": "orc_heavy_cannon",
+        "input": "drag_and_drop",
+        "visual": "large flaming projectile causing high impact destruction",
+        "hits_before_knockback": null,
+        "range": "ranged",
+        "has_combo": false,
+        "combo_length": null
+      }
+    ],
+    "magic": {
+      "observed": false,
+      "type": null,
+      "visual_description": null
+    },
+    "hp_bar": {
+      "visible": true,
+      "position": "top_left",
+      "color": "blue"
+    }
+  },
+  "enemies": [
+    {
+      "name": "enemy_castle",
+      "color_or_visual": "gray stone castle on treads with red banners",
+      "behavior": "automatic_firing_and_advancing",
+      "attack_pattern": "ranged_projectiles",
+      "hp_relative": "high",
+      "death_animation": "collapses into debris and falls into lava pit",
+      "count_on_screen_max": 1
+    }
+  ],
+  "level": {
+    "background_description": "green rolling hills, forest, cloudy sky, lava/ravine at the bottom",
+    "scrolls": true,
+    "scroll_direction": "left_to_right",
+    "layers_visible": [
+      "far_background_hills",
+      "midground_trees",
+      "ground_platform"
+    ],
+    "lanes_z_count": 1,
+    "obstacles": []
+  },
+  "hud": {
+    "elements": [
+      "hp_percentage_bars",
+      "vs_icon",
+      "unit_selection_dock",
+      "drag_hand_tutorial"
+    ],
+    "cta_moment": "immediately after the enemy castle collapses into the lava at 0:53"
+  },
+  "playable_ad_recommendation": {
+    "core_mechanic_to_keep": "Dragging and dropping specialized units into castle slots to trigger immediate physics-based destruction of the enemy structure.",
+    "what_to_cut": [
+      "automatic movement phases",
+      "slow health attrition",
+      "repeated fails"
+    ],
+    "suggested_difficulty_for_ad": "easy — provide the high-damage units immediately for instant satisfaction",
+    "suggested_duration_seconds": 15
+  }
+}

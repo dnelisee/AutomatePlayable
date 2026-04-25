@@ -6,6 +6,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Castle Clasher</title>
   <style>
+    /*
+      ===============================================================
+      DOCUMENTATION TECHNIQUE - GENERATION DES ASSETS VIA SCENARIO
+      ===============================================================
+      Les assets des personnages doivent respecter la direction artistique 
+      "isometric/side-view, cartoon-vector style".
+      
+      Génération via Scenario.com (Copier/Coller ces prompts) :
+      
+      1) Cyclope Rouge (Red Cyclops) :
+         Prompt : "A cartoon style massive red cyclops monster, side-view, holding a club, vector art style, clean lines, solid colors, transparent background"
+         Canvas : 512x512
+      
+      2) Squelette (Skeleton) :
+         Prompt : "A cartoon style warrior skeleton, side-view, holding a sword and shield, vector art style, clean lines, solid colors, transparent background"
+         Canvas : 512x512
+         
+      3) Orc Vert (Green Orc) :
+         Prompt : "A cartoon style hulking green orc, side-view, holding an axe, vector art style, clean lines, solid colors, transparent background"
+         Canvas : 512x512
+      ===============================================================
+    */
     * {
       margin: 0;
       padding: 0;
@@ -142,6 +164,7 @@
     let projectiles = [];
     let enemyProjectiles = [];
     let floatingDmg = [];
+    let debris = [];
     let lastEnemyFire = 0;
     let ctaShown = false;
     let shakeT = 0;
@@ -269,6 +292,20 @@
           flashT = 0.25;
           spawnParticles(p.tx, p.ty, "#f39c12", 16);
           spawnFloatingDmg(p.tx, p.ty - 20 * sc(), p.dmg, "#f1c40f");
+          // Spawn debris
+          for (let i = 0; i < 6; i++) {
+            debris.push({
+              x: p.tx + (Math.random() - 0.5) * 40 * sc(),
+              y: p.ty + (Math.random() - 0.5) * 40 * sc(),
+              vx: (Math.random() - 0.5) * 8 * sc(),
+              vy: -Math.random() * 6 * sc(),
+              va: (Math.random() - 0.5) * 0.5,
+              size: (10 + Math.random() * 15) * sc(),
+              life: 1,
+              angle: 0,
+              color: Math.random() > 0.5 ? "#7f8c8d" : "#bdc3c7"
+            });
+          }
           if (enemyHp <= 0) { spawnParticles(p.tx, p.ty, "#e74c3c", 40); setTimeout(() => { state = STATE.WIN; }, 600); }
           return false;
         }
@@ -290,6 +327,20 @@
           flashT = 0.2;
           spawnParticles(p.tx, p.ty, "#3498db", 10);
           spawnFloatingDmg(p.tx, p.ty - 20 * sc(), p.dmg, "#e74c3c");
+          // Spawn debris
+          for (let i = 0; i < 6; i++) {
+            debris.push({
+              x: p.tx + (Math.random() - 0.5) * 40 * sc(),
+              y: p.ty + (Math.random() - 0.5) * 40 * sc(),
+              vx: (Math.random() - 0.5) * 8 * sc(),
+              vy: -Math.random() * 6 * sc(),
+              va: (Math.random() - 0.5) * 0.5,
+              size: (10 + Math.random() * 15) * sc(),
+              life: 1,
+              angle: 0,
+              color: Math.random() > 0.5 ? "#7f8c8d" : "#95a5a6"
+            });
+          }
           if (playerHp <= 0) { state = STATE.LOSE; }
           return false;
         }
@@ -308,6 +359,14 @@
         p.x += p.vx; p.y += p.vy; p.vy += 0.15 * sc();
         p.life -= dt * 1.8;
         return p.life > 0;
+      });
+
+      // Debris
+      debris = debris.filter(d => {
+        d.x += d.vx; d.y += d.vy; d.vy += 0.3 * sc();
+        d.life -= dt * 0.5;
+        d.angle += d.va;
+        return d.life > 0;
       });
 
       // CTA après délai
@@ -347,15 +406,15 @@
       drawCastle("BLUE_CASTLE", bluePos(), playerHp);
       drawCastle("RED_CASTLE", redPos(), enemyHp);
 
-      // HP bars
-      drawHpBar(W() * 0.05, H() * 0.04, W() * 0.35, H() * 0.045, playerHp / 100, "#3498db", "YOUR CASTLE");
-      drawHpBar(W() * 0.60, H() * 0.04, W() * 0.35, H() * 0.045, enemyHp / 100, "#e74c3c", "ENEMY CASTLE");
+      // Minimalist HP bars with Castle Icons
+      drawMinimalHpBar(W() * 0.05, H() * 0.04, W() * 0.35, H() * 0.035, playerHp / 100, "#3498db", "BLUE_CASTLE");
+      drawMinimalHpBar(W() * 0.60, H() * 0.04, W() * 0.35, H() * 0.035, enemyHp / 100, "#e74c3c", "RED_CASTLE");
 
       // VS
-      ctx.fillStyle = "#f1c40f";
-      ctx.font = `bold ${32 * sc()}px Arial`;
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${24 * sc()}px Arial`;
       ctx.textAlign = "center";
-      ctx.fillText("VS", W() * 0.5, H() * 0.07);
+      ctx.fillText("VS", W() * 0.5, H() * 0.065);
 
       // Projectiles
       [...projectiles, ...enemyProjectiles].forEach(p => {
@@ -378,6 +437,20 @@
         ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
       });
       ctx.globalAlpha = 1;
+
+      // Debris
+      debris.forEach(d => {
+        ctx.save();
+        ctx.translate(d.x, d.y);
+        ctx.rotate(d.angle);
+        ctx.globalAlpha = d.life;
+        ctx.fillStyle = d.color;
+        ctx.fillRect(-d.size/2, -d.size/2, d.size, d.size);
+        ctx.strokeStyle = "#2c3e50";
+        ctx.lineWidth = 1 * sc();
+        ctx.strokeRect(-d.size/2, -d.size/2, d.size, d.size);
+        ctx.restore();
+      });
 
       // Floating damage numbers
       floatingDmg.forEach(f => {
@@ -443,14 +516,32 @@
       ctx.save();
       const hpPct = hp / CONFIG.castleHp;
 
-      let dw = pos.w;
       let dh = pos.h;
-      let dx = pos.x;
-      let dy = pos.y;
+      let dw = pos.w;
       if (img && img.complete && img.naturalHeight > 0) {
         const imgAspect = img.naturalWidth / img.naturalHeight;
         dw = dh * imgAspect;
-        dx = pos.x + (pos.w - dw) / 2;
+      } else {
+        // Massive vertical structures
+        dw = dh * 0.4;
+      }
+      let dx = pos.x + (pos.w - dw) / 2;
+      let dy = pos.y;
+
+      // Draw Treads (chenilles)
+      ctx.fillStyle = "#222";
+      ctx.beginPath();
+      ctx.roundRect(dx - 10*sc(), dy + dh - 10*sc(), dw + 20*sc(), 24*sc(), 12*sc());
+      ctx.fill();
+      ctx.strokeStyle = "#555";
+      ctx.lineWidth = 2*sc();
+      ctx.stroke();
+      // Wheels inside tread
+      ctx.fillStyle = "#111";
+      for(let i=0; i<4; i++) {
+        ctx.beginPath();
+        ctx.arc(dx + 5*sc() + i * (dw/3), dy + dh + 2*sc(), 8*sc(), 0, Math.PI*2);
+        ctx.fill();
       }
 
       if (hpPct < 0.30) {
@@ -509,20 +600,32 @@
       ctx.restore();
     }
 
-    function drawHpBar(x, y, w, h, pct, color, label) {
+    function drawMinimalHpBar(x, y, w, h, pct, color, iconKey) {
+      // Icon
+      const is = h * 1.5;
+      const img = IMG[iconKey];
+      if (img && img.complete) {
+        ctx.drawImage(img, x, y - (is-h)/2, is, is);
+      } else {
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y - (is-h)/2, is, is);
+      }
+      const bx = x + is + 10*sc();
+      const bw = w - is - 10*sc();
+      
       ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(bx, y, bw, h, h / 2); ctx.fill();
 
       ctx.fillStyle = color;
-      const bw = Math.max(0, (w - 4) * pct);
+      const fbw = Math.max(0, bw * pct);
       ctx.save();
-      ctx.beginPath(); ctx.roundRect(x + 2, y + 2, bw, h - 4, h / 2 - 2); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(bx, y, fbw, h, h / 2); ctx.fill();
       ctx.restore();
 
       ctx.fillStyle = "#fff";
-      ctx.font = `bold ${11 * sc()}px Arial`;
-      ctx.textAlign = "center";
-      ctx.fillText(`${label}  ${Math.round(pct * 100)}%`, x + w / 2, y + h * 0.72);
+      ctx.font = `bold ${12 * sc()}px Arial`;
+      ctx.textAlign = "left";
+      ctx.fillText(`${Math.round(pct * 100)}%`, bx + 10*sc(), y + h * 0.75);
     }
 
     function drawDock() {
@@ -536,10 +639,13 @@
         ctx.strokeStyle = isSelected ? "#f1c40f" : "#ffffff44";
         ctx.lineWidth = 2 * sc(); ctx.stroke();
 
-        // Icône unité (on utilise l'arme comme sprite de l'unité faute d'asset)
-        const img = IMG[u.weapon] || IMG[u.proj];
-        const is = d.w * 0.5;
-        if (img && img.complete) ctx.drawImage(img, d.x + d.w * 0.25, d.y + d.h * 0.1, is, is);
+        // Placeholder pour l'asset (voir doc Scenario.com)
+        ctx.fillStyle = "rgba(255,255,255,0.1)";
+        ctx.beginPath(); ctx.arc(d.x + d.w/2, d.y + d.h*0.4, d.w*0.25, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.font = `bold ${14 * sc()}px Arial`;
+        ctx.textAlign = "center";
+        ctx.fillText("?", d.x + d.w/2, d.y + d.h*0.45);
 
         // Label
         ctx.fillStyle = "#fff";
@@ -580,13 +686,43 @@
     }
 
     function drawEndScreen(win) {
-      ctx.fillStyle = win ? "rgba(0,80,0,0.82)" : "rgba(80,0,0,0.82)";
+      ctx.fillStyle = "rgba(0,0,0,0.85)";
       ctx.fillRect(0, 0, W(), H());
-      ctx.fillStyle = "#fff";
-      ctx.font = `bold ${46 * sc()}px Arial`;
+      
+      // Top Logo
+      const titleY = H() * 0.2;
+      ctx.font = `900 ${50 * sc()}px "Arial Black", Impact, sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText(win ? "VICTORY!" : "DEFEAT", W() / 2, H() * 0.42);
-      drawCTAButton();
+      ctx.lineWidth = 6 * sc();
+      ctx.strokeStyle = "#000";
+      ctx.strokeText("CASTLE CLASHERS", W() / 2, titleY);
+      const grad = ctx.createLinearGradient(0, titleY - 50*sc(), 0, titleY);
+      grad.addColorStop(0, "#f39c12");
+      grad.addColorStop(1, "#e74c3c");
+      ctx.fillStyle = grad;
+      ctx.fillText("CASTLE CLASHERS", W() / 2, titleY);
+
+      // Characters aligned in center (Placeholders for Scenario sprites)
+      const cx = W() / 2;
+      const cy = H() * 0.5;
+      const spacing = W() * 0.25;
+      const size = W() * 0.15;
+      
+      for(let i=-1; i<=1; i++) {
+        ctx.fillStyle = "rgba(255,255,255,0.1)";
+        ctx.beginPath();
+        ctx.arc(cx + i*spacing, cy, size, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.font = `bold ${14 * sc()}px Arial`;
+        ctx.fillText("Sprite", cx + i*spacing, cy);
+      }
+      
+      ctx.fillStyle = win ? "#2ecc71" : "#e74c3c";
+      ctx.font = `900 ${46 * sc()}px "Arial Black", Impact, sans-serif`;
+      ctx.fillText(win ? "VICTORY!" : "DEFEAT", W() / 2, H() * 0.35);
+
+      drawShinyPlayButton();
     }
 
     function drawCTA() {
@@ -596,7 +732,39 @@
       ctx.font = `bold ${36 * sc()}px Arial`;
       ctx.textAlign = "center";
       ctx.fillText("Ready for the real battle?", W() / 2, H() * 0.38);
-      drawCTAButton();
+      drawShinyPlayButton();
+    }
+
+    function drawShinyPlayButton() {
+      const bw = W() * 0.6;
+      const bh = H() * 0.1;
+      const bx = (W() - bw) / 2;
+      const by = H() * 0.75;
+      
+      const pulse = 1 + Math.sin(Date.now() / 150) * 0.05;
+      ctx.save();
+      ctx.translate(W()/2, by + bh/2);
+      ctx.scale(pulse, pulse);
+      ctx.translate(-W()/2, -(by + bh/2));
+
+      // Button background
+      ctx.fillStyle = "#27ae60";
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, bh/2); ctx.fill();
+      ctx.lineWidth = 4*sc(); ctx.strokeStyle = "#2ecc71"; ctx.stroke();
+      
+      // Shiny effect
+      const grad = ctx.createLinearGradient(bx, by, bx, by + bh/2);
+      grad.addColorStop(0, "rgba(255,255,255,0.4)");
+      grad.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh/2, bh/2); ctx.fill();
+
+      // Text
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${32 * sc()}px Arial`;
+      ctx.textAlign = "center";
+      ctx.fillText("PLAY NOW", W() / 2, by + bh * 0.65);
+      ctx.restore();
     }
 
     function drawLoading() {
