@@ -1,0 +1,67 @@
+{
+  "1_Identite_Cadre": {
+    "Nom": "Castle Clashers",
+    "Genre": "Tower Defense / Offense 2D (Castle vs Castle)",
+    "Plateforme": "Mobile First (jouable sur desktop avec ratio vertical 9:16)",
+    "Public_Duree": "Casual/Mid-core, durée d'une partie courte (playable de 15 à 30 secondes)",
+    "Perspective": "2D side-scrolling"
+  },
+  "2_Gameplay_Mecaniques": {
+    "Boucle_Principale": "Glisser-déposer des unités sur les plateformes du château pour qu'elles tirent sur le château ennemi.",
+    "Objectif": "Détruire le château ennemi avant que le sien ne soit détruit.",
+    "Controles": "Tactile (drag & drop) / Souris (click & drag) depuis le panel inférieur vers les slots du château.",
+    "Regles": {
+      "Placement": "Les unités ne peuvent être placées que sur les plateformes prévues à l'intérieur du château.",
+      "Combat": "Attaque automatique des unités une fois placées. L'ennemi tire automatiquement aussi.",
+      "Degats": "Les projectiles touchent le château opposé et réduisent ses PV (représentés par un pourcentage).",
+      "Gravite": "Physique de trajectoire parabolique pour certains projectiles et les débris."
+    },
+    "Conditions_Victoire_Defaite": {
+      "Victoire": "PV du château ennemi tombent à 0%.",
+      "Defaite": "PV du château joueur tombent à 0%."
+    },
+    "Economie": "Aucune économie complexe dans le playable (pas de mana/pièces pour placer les unités, juste des slots disponibles)."
+  },
+  "3_Personnages_Entites": {
+    "Joueur": "Pas de personnage direct, le joueur contrôle le déploiement.",
+    "Unites": [
+      {
+        "Type": "Skeleton Gunner (Squelette bleu)",
+        "Role": "Tireur à distance (Roquettes avec trainée de fumée)."
+      },
+      {
+        "Type": "Red Cyclops (Cyclope rouge)",
+        "Role": "Tireur (Bombes ou projectiles directs)."
+      },
+      {
+        "Type": "Green Goblin (Gobelin vert)",
+        "Role": "Tireur à distance."
+      }
+    ],
+    "Ennemis": "Le château ennemi (IA basique qui tire périodiquement).",
+    "Structures": "Château bleu (Joueur) et Château rouge (Ennemi) sur chenilles."
+  },
+  "4_Niveaux_Monde": {
+    "Structure": "Niveau unique d'arène (Playable).",
+    "Layout": "Écran divisé avec château joueur à gauche, château ennemi à droite. Ciel, collines et nuages en arrière-plan.",
+    "Physique": "Projectiles avec trajectoire parabolique ou droite. Effets de particules avec gravité (débris qui tombent)."
+  },
+  "5_Direction_Artistique": {
+    "Style": "Cartoon 2D, vectoriel et coloré avec des contours noirs (outline).",
+    "Palette": "Couleurs vives (Bleu pour allié, Rouge pour ennemi, vert pour décor).",
+    "UI": "Barres de vie en haut (Bleu vs Rouge avec pourcentages), Panel de cartes d'unités en bas, icône de main pour le tutoriel (drag and drop).",
+    "VFX": "Explosions cartoonesques, fumée (particules), débris de pierre, écran qui tremble (screen shake) lors des impacts, château qui se noircit et s'abîme visuellement."
+  },
+  "6_Audio": {
+    "Musique": "Musique épique/action en fond.",
+    "SFX": "Bruits d'explosions, tirs de roquettes, bruits de pierres qui s'écrasent, sons de placement d'unités."
+  },
+  "7_Narration": {
+    "Histoire": "Guerre entre deux forteresses mouvantes.",
+    "Tutoriel": "Main animée indiquant de glisser une carte d'unité vers le château. (typique playable ad)"
+  },
+  "8_Technique": {
+    "Moteur": "Vanilla JS (ou HTML5 Canvas 2D) selon les contraintes de Playable Ads.",
+    "Contraintes": "Fichier HTML unique, inlining base64 des assets, moins de 5 Mo, haute performance mobile (60 FPS)."
+  }
+}
