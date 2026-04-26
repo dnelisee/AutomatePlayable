@@ -12,8 +12,8 @@
     "Controles": "Tactile (drag & drop) / Souris (click & drag) depuis le panel inférieur vers les slots du château.",
     "Regles": {
       "Placement": "Les unités ne peuvent être placées que sur les plateformes prévues à l'intérieur du château.",
-      "Combat": "Attaque automatique des unités une fois placées. L'ennemi tire automatiquement aussi.",
-      "Degats": "Les projectiles touchent le château opposé et réduisent ses PV (représentés par un pourcentage).",
+      "Combat": "Choix de l'angle d'inclinaison des tirs par le joueur,  L'ennemi tire automatiquement aussi.",
+      "Degats": "Les projectiles touchent le château opposé et réduisent ses PV (représentés par un pourcentage). Comme on est en 2D, la surface visble du chateau se brise au fur et à mesure, les morceaux et débris tombent et disparaissent laissant visible les personnages à l'intérieur du chateau. Les personnages qui sont toucher sont également tués (prennent une animation de mort et disparaissent). et laissent une sorte de pierre tombale",
       "Gravite": "Physique de trajectoire parabolique pour certains projectiles et les débris."
     },
     "Conditions_Victoire_Defaite": {
