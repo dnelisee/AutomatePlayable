@@ -1,0 +1,15 @@
+Goal and contraints : 
+
+At Voodoo, **playable ads** let players experience a game's core mechanics directly inside an ad unit — they're a key part of our user acquisition strategy. These ads must be lightweight, fast-loading, and follow strict technical constraints imposed by ad networks.
+
+Your task is to **build a single-file HTML playable** that reproduces it at best as possible.
+
+> The goal is not a pixel-perfect clone. It's a prototype that include all what made a playable effective. 
+
+
+Contraints : 
+    Playable prototype — a single HTML file, no external dependencies
+    Core gameplay interaction from the video is functional and interactive
+    Runs in a browser
+    Runs on [AppLovin Playable Preview](https://p.applov.in/playablePreview?create=1) and your mobile device 
+    File size under 5 MB with fast loading time 

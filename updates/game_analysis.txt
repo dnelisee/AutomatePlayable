@@ -1,0 +1,44 @@
+### GAMEPLAY ANALYSIS & MECHANICS SPECIFICATION by AI : 
+
+#### 1. World & Physics Architecture
+* **Terrain-Relative Alignment:** The castle’s vertical axis must align with the ground’s local normal. 
+    * *Logic:* For a ground defined by $f(x)$, the castle rotation $\theta$ is $\arctan(f'(x))$.
+    * *Inheritance:* Internal wooden platforms (stands) must inherit this rotation and maintain their relative position within the castle’s coordinate system.
+* **Environment Interaction:** * **Castle Recoil:** Every impact applies an impulse vector causing a slight translation and damped oscillation.
+    * **Uprooting:** Trees in the background are reactive. If an impact occurs within a radius $R$ of a tree, the tree is assigned a velocity $V(v_x, v_y)$ and an angular velocity to fly out of the frame.
+
+#### 2. Projectile Physics & Trajectories
+* **Player Attack (Missile Beam):**
+    * **Logic:** Multiple projectiles (fanning out) following a parabolic trajectory: $y = x \tan(\alpha) - \frac{gx^2}{2v_0^2 \cos^2(\alpha)}$.
+    * **Visual Aid:** A trajectory preview consisting of a trail of white circles with linearly decreasing radii from source to target.
+* **Enemy Attack (Sinusoidal Birds):**
+    * **Primary Path:** Standard parabolic or linear arc towards the player.
+    * **Secondary Motion:** Two "bird" entities following the primary path with a perpendicular sinusoidal offset:
+        * Bird A: $+A \sin(\omega t)$
+        * Bird B: $+A \sin(\omega t + \pi)$ (Exact phase opposition).
+    * **VFX:** Persistent smoke trail (particle system) following the birds' coordinates.
+
+#### 3. Damage System & State Machine
+* **Fissure Logic:** Fissures are global (entire structure) and discrete based on Health Points (HP).
+    * **Thresholds:** $100\%, 90\%, 80\%, 70\%, 50\%, 30\%, 10\%, 5\%$.
+    * *Static Condition:* If HP decreases but does not cross a threshold (e.g., $80\% \to 75\%$), the fissure state remains unchanged.
+* **Feedback Loops:**
+    * **Impact:** Spawn debris/scoriae at the point of collision.
+    * **Damage Alert:** Trigger a red vignette/flash at the bottom of the screen.
+* **Character Status:** Characters are fixed to their stands. Upon HP reaching $0\%$ for a specific character slot (or castle destruction milestones), replace the character sprite with a `grave_stone_RIP` sprite.
+
+#### 4. UI & Interaction Flow
+* **Initial Hook:** Camera starts focused on the **Enemy Castle** (Right). Enemy fires first.
+* **Player Turn Transition:**
+    1.  Camera zooms into the Player Castle (Left).
+    2.  **Layer Swap:** The "Outer Shell" of the castle is hidden (`alpha = 0`), revealing the interior.
+    3.  **Selection:** Characters are arranged in a $3 \times 1$ horizontal grid for selection.
+* **Aiming Interface:** 1.  A finger cursor (pointing index) appears next to the active character.
+    2.  Drag-and-release mechanic for adjusting velocity ($v_0$) and angle ($\alpha$).
+    3.  Shot fires only upon cursor release.
+
+#### 5. Camera & Scene Management
+* **Dynamic Following:** The camera uses a "Lerp" (Linear Interpolation) to follow projectiles mid-air.
+* **Stabilization:** The camera must stay on the impact point until all explosions, debris, and screen shakes have settled.
+* **Turn Cycle:**
+    * Focus on Attacker $\to$ Follow Projectile $\to$ Focus on Impact $\to$ Broad view of both castles $\to$ Focus on new Attacker.

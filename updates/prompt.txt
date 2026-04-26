@@ -1,0 +1,31 @@
+Le but est que tu produises le code HTMl dans le fichier playable.html du playable ad du jeu Castle Clashers. 
+
+Le scénario du jeu est décrit dans le fichier scenario.txt. 
+L'analyse plus précise du jeu (mécanisme, physique, gameplay) est décrite dans le fichier game_analysis.txt. 
+
+Ne dessine rien mais utilise les assets que j'ai encodé en base64 dans le fichier assets.json. Incorpore cela dans le code car on ne veut pas de dépendance externe(principe d'un ad). 
+
+Voici le rôle de chaque asset encodé : 
+
+"Background" : arrière plan du jeu; 
+Blue Castle" : chateau de gacuhe pour le user a contrario du chateau ennemi 
+Red Castle : chateau de droite (chateau ennemi) 
+
+projectile_1 : est un missile qui doit s'envoyer toujours par groupe de 7. 
+projectile_2 : autre projectile mais à envoyer seul. 
+
+chenille : les chateaux sont placés sur les chenilles (deux à chaque extremité de la base du chateau) 
+
+orc_arm : image de l'org lorsqu'il a une arme en main. A charger lorsque le user le choisit pour effectuer son tir ou bien 
+            s'il est le tireur ennemi.   
+            l'orc tire le projectile_2 
+
+silhouette : image de l'intérieur des chateaux à charger à chaque fois qu'il y a un zoom sur un personnage tirant et étant dans un chateau, afin qu'on puisse apprécier le personnage tirant qui. 
+
+
+Les personnages sans les armes sont "Character_Cyclop", "Character_Orc" et "Character_Skeleton". A charger quand ce n'est pas à leurs tours de tirer ou ne sont pas selectionnés par le user pour tirer. 
+
+rip : est l'image de la pierre tombale à charger à la place d'un personnage à chaque fois qu'il est touché par un tir (donc il meurt) 
+finger : c'est l'image de la main qui indique à chaque fois qu'il faut dire à l'utilisateur de cliquer sur un personnage pour tirer. Elle est présente jusqu'à ce que le user lâche la souris pour déclencher le tir. 
+
+oiseau ennemi : c'est le Bird du game_analysis. 
