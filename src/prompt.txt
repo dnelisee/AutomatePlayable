@@ -1,0 +1,48 @@
+Objet : Migration vers Playable6 – Intégration d'assets, Masquage Alpha et Guidage Utilisateur Dynamique
+
+Tu vas générer le fichier playable6.html en utilisant exclusivement le code de playable5.html comme base. Le code doit être un fichier unique, autonome (protocole file://), sans modules ES6 et avec tous les assets inlinés.
+
+1. Système de Masquage par Silhouette (Superposition)
+L'Intérieur : N'utilise plus de rectangle noir générique. Tu vas recevoir une image "silhouette" (tout en noir) représentant la forme exacte du château. Tu dois la superposer parfaitement à l'image de la façade.
+
+Rendu des Unités : Les personnages et le fond noir ne sont rendus que dans les phases où la façade est masquée. La silhouette noire sert de délimitation visuelle pour l'intérieur.
+
+Fissures (Alpha Clipping) : Les fissures ne doivent jamais apparaître dans le vide (zones transparentes du PNG). Utilise le contexte Canvas (globalCompositeOperation = 'source-atop') ou l'image de silhouette noire comme masque pour que les fissures restent confinées à la structure du château.
+
+2. Animation du Tutoriel (La Main)
+Trajectoire Slingshot : Modifie l'animation de la main tutoriel. Pour montrer qu'il faut tirer vers l'arrière pour projeter vers l'avant, la main doit effectuer un mouvement diagonal de haut-droite vers bas-gauche.
+
+Vecteur de visée : Pendant ce mouvement de la main, affiche la ligne de trajectoire pointillée s'étirant vers le château adverse pour renforcer la compréhension de la mécanique.
+
+3. Intégration des Sprites et Projectiles
+Personnages : Remplace les ronds/placeholders par les constantes d'images SPRITE_ORC, SPRITE_SKELETON et SPRITE_CYCLOPS.
+
+Missiles : Remplace les projectiles ennemis par l'image IMAGE_MISSILE_ENEMY. Applique une rotation au sprite pour qu'il pointe vers sa cible selon son vecteur de déplacement.
+
+Tombes : Utilise IMAGE_TOMB pour les unités ayant 0 PV.
+
+4. Logique de Fin de Jeu (Audit Profond)
+Suppression des Timers : Analyse tout le code pour supprimer tout résidu de limite de temps (30s) ou d'arrêt automatique.
+
+Conditions de Sortie : Le bouton CTA (End Screen) n'apparaît que si :
+
+Les PV d'un château sont à 0.
+
+OU tous les personnages d'une équipe sont morts (tombes).
+
+Le jeu doit être "infini" tant que ces conditions ne sont pas rencontrées.
+
+5. Physique et Caméra
+Conserve le terrain accidenté, le "bounce" des châteaux et les transitions de caméra (Focus tireur -> Suivi projectile -> Zoom impact).
+
+Assure-toi que les personnages sont invisibles lorsque la façade est affichée.
+
+CONSIGNES DE RENDU :
+
+Prépare les constantes d'images en haut du fichier avec des commentaires /* BASE64_DATA */.
+
+Utilise exclusivement le Canvas HTML5 et Vanilla JS.
+
+Assure-toi que l'ordre des calques (Z-index) est : Background > Intérieur/Personnages > Façade/Fissures > FX > UI/Main.
+
+Génère maintenant le code complet de playable6.html.

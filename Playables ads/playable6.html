@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Castle Clasher - Playable 6</title>
+  <style>
+    body { margin: 0; padding: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+    #ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const ASSETS_B64 = {
+      BG: "/* BASE64_BG */",
+      CASTLE_BLUE: "/* BASE64_CASTLE_BLUE */",
+      CASTLE_RED: "/* BASE64_CASTLE_RED */",
+      IMAGE_SILHOUETTE: "/* BASE64_IMAGE_SILHOUETTE */",
+      SPRITE_ORC: "/* BASE64_SPRITE_ORC */",
+      SPRITE_SKELETON: "/* BASE64_SPRITE_SKELETON */",
+      SPRITE_CYCLOPS: "/* BASE64_SPRITE_CYCLOPS */",
+      IMAGE_MISSILE_PLAYER: "/* BASE64_IMAGE_MISSILE_PLAYER */",
+      IMAGE_MISSILE_ENEMY: "/* BASE64_IMAGE_MISSILE_ENEMY */",
+      IMAGE_TOMB: "/* BASE64_IMAGE_TOMB */",
+      UI_HAND: "/* BASE64_UI_HAND */"
+    };
+
+    const CONFIG = {
+      GRAVITY: 800,
+      castleMoveSpeed: 0.1,
+      minDragDist: 10,
+      maxDragDist: 150
+    };
+
+    const UNIT_STATS = {
+      orc:      { hp: 100, dmg: 40, sprite: "SPRITE_ORC" },
+      skeleton: { hp: 60,  dmg: 25, sprite: "SPRITE_SKELETON" },
+      cyclops:  { hp: 200, dmg: 80, sprite: "SPRITE_CYCLOPS" }
+    };
+
+    const S = { LOADING: 0, TITLE: 1, AIM: 2, FLYING: 3, ENEMY_TURN: 4, WIN: 5, LOSE: 6 };
+    let state = S.LOADING;
+
+    const canvas = document.getElementById("c");
+    const ctx = canvas.getContext("2d");
+    let W, H;
+
+    const IMG = {};
+    const offscreenCanvas = document.createElement('canvas');
+    const offCtx = offscreenCanvas.getContext('2d');
+
+    // Game Objects
+    let blue = { x: 0, y: 0, w: 150, h: 200, hp: 500, maxHp: 500, angle: 0, cracks: [], img: "CASTLE_BLUE", facadeAlpha: 1 };
+    let red = { x: 0, y: 0, w: 150, h: 200, hp: 500, maxHp: 500, angle: 0, cracks: [], img: "CASTLE_RED", facadeAlpha: 1 };
+    const CASTLE_UNITS = { blue: [], red: [] };
+    let projectiles = [];
+    let particles = [];
+    let dmgNumbers = [];
+
+    let activeTeam = "blue";
+    let selectedUnit = 0;
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let dragCurrent = { x: 0, y: 0 };
+
+    let camera = { x: 0, y: 0, scale: 1, targetX: 0, targetY: 0 };
+    let shakeAmt = 0;
+    let flashAlpha = 0;
+    let flashColor = "255,255,255";
+    let elapsed = 0;
+
+    function init() {
+      resize();
+      window.addEventListener("resize", resize);
+      canvas.addEventListener("mousedown", onTouchStart);
+      canvas.addEventListener("mousemove", onTouchMove);
+      canvas.addEventListener("mouseup", onTouchEnd);
+      canvas.addEventListener("touchstart", (e) => onTouchStart(e.touches[0]));
+      canvas.addEventListener("touchmove", (e) => onTouchMove(e.touches[0]));
+      canvas.addEventListener("touchend", (e) => onTouchEnd(e.changedTouches[0]));
+
+      loadAssets();
+    }
+
+    function loadAssets() {
+      let loaded = 0;
+      const keys = Object.keys(ASSETS_B64);
+      keys.forEach(k => {
+        IMG[k] = new Image();
+        IMG[k].onload = () => {
+          loaded++;
+          if (loaded === keys.length) startGame();
+        };
+        IMG[k].src = ASSETS_B64[k];
+      });
+    }
+
+    function startGame() {
+      resetGame();
+      state = S.AIM;
+      requestAnimationFrame(loop);
+    }
+
+    function resetGame() {
+      blue.hp = blue.maxHp; blue.cracks = []; blue.facadeAlpha = 1;
+      red.hp = red.maxHp; red.cracks = []; red.facadeAlpha = 1;
+      
+      CASTLE_UNITS.blue = [
+        { type: "orc", hp: 100, relX: 0.3, relY: 0.45, img: "SPRITE_ORC" },
+        { type: "skeleton", hp: 60, relX: 0.7, relY: 0.75, img: "SPRITE_SKELETON" }
+      ];
+      CASTLE_UNITS.red = [
+        { type: "orc", hp: 100, relX: 0.3, relY: 0.45, img: "SPRITE_ORC" },
+        { type: "orc", hp: 100, relX: 0.7, relY: 0.45, img: "SPRITE_ORC" }
+      ];
+
+      blue.x = W * 0.15;
+      red.x = W * 0.7;
+      blue.y = getTerrainY(blue.x + blue.w/2) - blue.h + 20;
+      red.y = getTerrainY(red.x + red.w/2) - red.h + 20;
+    }
+
+    function resize() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+      offscreenCanvas.width = 300; // Large enough for castle
+      offscreenCanvas.height = 300;
+    }
+
+    function getTerrainY(x) {
+      return H * 0.85 + Math.sin(x * 0.005) * 10;
+    }
+
+    function onTouchStart(e) {
+      if (state !== S.AIM) return;
+      isDragging = true;
+      dragStart = { x: e.clientX, y: e.clientY };
+      dragCurrent = { x: e.clientX, y: e.clientY };
+    }
+
+    function onTouchMove(e) {
+      if (!isDragging) return;
+      dragCurrent = { x: e.clientX, y: e.clientY };
+    }
+
+    function onTouchEnd(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      let dx = dragStart.x - dragCurrent.x;
+      let dy = dragStart.y - dragCurrent.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      
+      if (dist > CONFIG.minDragDist) {
+        launchProjectile(dx, dy);
+      }
+    }
+
+    function launchProjectile(dx, dy) {
+      const shooter = CASTLE_UNITS.blue[selectedUnit];
+      const sx = blue.x + blue.w * shooter.relX;
+      const sy = blue.y + blue.h * shooter.relY;
+      
+      projectiles.push({
+        x: sx, y: sy,
+        vx: dx * 4, vy: dy * 4,
+        radius: 10,
+        owner: "blue",
+        dmg: 50,
+        trail: []
+      });
+      state = S.FLYING;
+    }
+
+    function launchEnemy() {
+      const live = CASTLE_UNITS.red.filter(u => u.hp > 0);
+      if (live.length === 0) return;
+      const u = live[0];
+      const sx = red.x + red.w * u.relX;
+      const sy = red.y + red.h * u.relY;
+      
+      projectiles.push({
+        x: sx, y: sy,
+        vx: -500 - Math.random() * 200,
+        vy: -400 - Math.random() * 200,
+        radius: 10,
+        owner: "red",
+        dmg: 40,
+        trail: []
+      });
+    }
+
+    function loop(t) {
+      let dt = 1/60;
+      update(dt);
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    function update(dt) {
+      elapsed += dt;
+      if (shakeAmt > 0) shakeAmt -= dt * 2;
+      if (flashAlpha > 0) flashAlpha -= dt * 2;
+
+      projectiles = projectiles.filter(p => {
+        p.x += p.vx * dt;
+        p.vy += CONFIG.GRAVITY * dt;
+        p.y += p.vy * dt;
+        p.trail.push({x: p.x, y: p.y});
+        if (p.trail.length > 10) p.trail.shift();
+
+        let tgt = p.owner === "blue" ? red : blue;
+        if (p.x > tgt.x && p.x < tgt.x + tgt.w && p.y > tgt.y && p.y < tgt.y + tgt.h) {
+          tgt.hp -= p.dmg;
+          // Cracks logic
+          let ix = p.x - tgt.x;
+          let iy = p.y - tgt.y;
+          tgt.cracks.push([{x: ix, y: iy}, {x: ix + (Math.random()-0.5)*40, y: iy + (Math.random()-0.5)*40}]);
+          
+          // Unit damage
+          let units = CASTLE_UNITS[p.owner === "blue" ? "red" : "blue"].filter(u => u.hp > 0);
+          if (units.length > 0) units[0].hp -= 50;
+
+          explosion(p.x, p.y);
+          shakeAmt = 0.5;
+          return false;
+        }
+        if (p.y > getTerrainY(p.x)) {
+          explosion(p.x, p.y);
+          return false;
+        }
+        return p.x > -100 && p.x < W + 100;
+      });
+
+      if (state === S.FLYING && projectiles.length === 0) {
+        checkVictory() ? null : setTimeout(enemyTurn, 1000);
+        state = S.ENEMY_TURN;
+      }
+      
+      particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; });
+      particles = particles.filter(p => p.life > 0);
+      
+      updateCamera(dt);
+    }
+
+    function enemyTurn() {
+      launchEnemy();
+      state = S.FLYING;
+      activeTeam = "blue";
+    }
+
+    function checkVictory() {
+      if (red.hp <= 0 || CASTLE_UNITS.red.every(u => u.hp <= 0)) {
+        state = S.WIN; return true;
+      }
+      if (blue.hp <= 0 || CASTLE_UNITS.blue.every(u => u.hp <= 0)) {
+        state = S.LOSE; return true;
+      }
+      return false;
+    }
+
+    function explosion(x, y) {
+      for (let i = 0; i < 15; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 400,
+          vy: (Math.random() - 0.5) * 400,
+          life: 0.5 + Math.random() * 0.5,
+          color: "#f1c40f"
+        });
+      }
+    }
+
+    function updateCamera(dt) {
+      if (projectiles.length > 0) {
+        camera.targetX = projectiles[0].x;
+        camera.targetY = projectiles[0].y;
+      } else {
+        camera.targetX = W / 2;
+        camera.targetY = H / 2;
+      }
+      camera.x += (camera.targetX - camera.x) * 0.1;
+      camera.y += (camera.targetY - camera.y) * 0.1;
+    }
+
+    function applyCamera() {
+      ctx.translate(W/2, H/2);
+      ctx.scale(camera.scale, camera.scale);
+      ctx.translate(-camera.x, -camera.y);
+      if (shakeAmt > 0) {
+        ctx.translate((Math.random()-0.5)*shakeAmt*20, (Math.random()-0.5)*shakeAmt*20);
+      }
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, W, H);
+      
+      drawBG();
+
+      ctx.save();
+      applyCamera();
+
+      drawTerrain();
+      
+      // Z-Order: Interior/Characters -> Facade/Cracks -> FX -> UI
+      drawCastleLayer(blue, false, "interior");
+      drawCastleLayer(red, true, "interior");
+      
+      drawCastleLayer(blue, false, "facade");
+      drawCastleLayer(red, true, "facade");
+
+      drawProjectiles();
+      drawParticles();
+      
+      if (state === S.AIM && isDragging) drawTrajectoryLine();
+
+      ctx.restore();
+
+      if (state === S.AIM && !isDragging) drawAimHint();
+      drawHUD();
+    }
+
+    function drawBG() {
+      if (IMG.BG.complete) {
+        ctx.drawImage(IMG.BG, 0, 0, W, H);
+      } else {
+        ctx.fillStyle = "#1e272e";
+        ctx.fillRect(0, 0, W, H);
+      }
+    }
+
+    function drawTerrain() {
+      ctx.fillStyle = "#2d3436";
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for (let x = 0; x <= W; x += 10) ctx.lineTo(x, getTerrainY(x));
+      ctx.lineTo(W, H);
+      ctx.fill();
+    }
+
+    function drawCastleLayer(c, isRed, layer) {
+      ctx.save();
+      if (layer === "interior") {
+        // Draw Silhouette
+        if (IMG.IMAGE_SILHOUETTE.complete) {
+          ctx.drawImage(IMG.IMAGE_SILHOUETTE, c.x, c.y, c.w, c.h);
+        } else {
+          ctx.fillStyle = "#000";
+          ctx.fillRect(c.x, c.y, c.w, c.h);
+        }
+
+        // Draw Characters only if facade is mostly hidden (simulated by logic or game stage)
+        // For this playable, we draw them inside the silhouette
+        let team = isRed ? "red" : "blue";
+        CASTLE_UNITS[team].forEach(u => {
+          let ux = c.x + c.w * u.relX;
+          let uy = c.y + c.h * u.relY;
+          let sz = 40;
+          if (u.hp > 0) {
+            ctx.drawImage(IMG[u.img], ux - sz/2, uy - sz/2, sz, sz);
+          } else {
+            ctx.drawImage(IMG.IMAGE_TOMB, ux - sz/2, uy - sz/2, sz, sz);
+          }
+        });
+      } else if (layer === "facade") {
+        // Clipping Cracks to Silhouette
+        offCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+        const img = IMG[c.img];
+        if (img.complete) {
+          offCtx.drawImage(img, 0, 0, c.w, c.h);
+          offCtx.globalCompositeOperation = 'source-atop';
+          // Draw Cracks locally
+          offCtx.strokeStyle = "#000";
+          offCtx.lineWidth = 3;
+          c.cracks.forEach(pts => {
+            offCtx.beginPath();
+            offCtx.moveTo(pts[0].x, pts[0].y);
+            offCtx.lineTo(pts[1].x, pts[1].y);
+            offCtx.stroke();
+          });
+          offCtx.globalCompositeOperation = 'source-over';
+          
+          ctx.globalAlpha = c.facadeAlpha;
+          ctx.drawImage(offscreenCanvas, 0, 0, c.w, c.h, c.x, c.y, c.w, c.h);
+          ctx.globalAlpha = 1;
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawProjectiles() {
+      projectiles.forEach(p => {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(Math.atan2(p.vy, p.vx));
+        let img = p.owner === "blue" ? IMG.IMAGE_MISSILE_PLAYER : IMG.IMAGE_MISSILE_ENEMY;
+        if (img.complete) ctx.drawImage(img, -15, -10, 30, 20);
+        ctx.restore();
+      });
+    }
+
+    function drawParticles() {
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.fillRect(p.x, p.y, 4, 4);
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    function drawTrajectoryLine() {
+      const shooter = CASTLE_UNITS.blue[selectedUnit];
+      const sx = blue.x + blue.w * shooter.relX;
+      const sy = blue.y + blue.h * shooter.relY;
+      let vx = (dragStart.x - dragCurrent.x) * 4;
+      let vy = (dragStart.y - dragCurrent.y) * 4;
+
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = "rgba(255,255,255,0.5)";
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      let px = sx, py = sy;
+      for (let i = 0; i < 30; i++) {
+        vy += CONFIG.GRAVITY * 0.05;
+        px += vx * 0.05;
+        py += vy * 0.05;
+        ctx.lineTo(px, py);
+        if (py > getTerrainY(px)) break;
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function drawAimHint() {
+      // Diagonal movement: top-right to bottom-left
+      let t = (Date.now() % 2000) / 2000;
+      let hx = W * 0.8 - t * 200;
+      let hy = H * 0.3 + t * 200;
+      if (IMG.UI_HAND.complete) ctx.drawImage(IMG.UI_HAND, hx, hy, 60, 60);
+    }
+
+    function drawHUD() {
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 20px Arial";
+      ctx.fillText(`Cité: ${Math.max(0, blue.hp)}`, 20, 40);
+      ctx.fillText(`Ennemi: ${Math.max(0, red.hp)}`, W - 150, 40);
+
+      if (state === S.WIN) {
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillRect(0,0,W,H);
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.font = "bold 40px Arial";
+        ctx.fillText("VICTOIRE !", W/2, H/2);
+      } else if (state === S.LOSE) {
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillRect(0,0,W,H);
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.font = "bold 40px Arial";
+        ctx.fillText("DÉFAITE...", W/2, H/2);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
