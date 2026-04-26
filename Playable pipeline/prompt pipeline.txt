@@ -1,0 +1,92 @@
+Voici le prompt "Master" à copier-coller dans Gemini. Ce prompt est conçu pour
+que l'IA comprenne non seulement l'arborescence, mais aussi la philosophie
+technique (AdTech, contraintes de poids, logique agentique).
+
+Prompt à envoyer à Gemini :
+
+Objet : Création d'une pipeline IA "End-to-End" pour la génération de Playable
+Ads (Projet : Playable Pipeline)
+
+"Tu es un expert Senior en IA et Lead Developer Game Tech. Ta mission est de
+générer l'intégralité du code source pour une pipeline automatisée capable de
+transformer une vidéo de gameplay en une publicité interactive (Playable Ad) au
+format HTML5.
+
+Nom du dossier racine : playable-pipeline
+
+CONTEXTE TECHNIQUE :
+
+1.  Entrée : Une vidéo MP4 et un dossier d'assets (PNG/JPG).
+2.  Analyse : Utilisation de Gemini 1.5 Pro pour extraire la logique de jeu
+    (Blueprint JSON).
+3.  Génération de Code : Utilisation de Claude 3.5 Sonnet pour générer la
+    logique Phaser.js.
+4.  Contraintes Playable : Fichier HTML unique, assets injectés en Base64, poids
+    < 5MB, pas de dépendances externes (sauf CDN Phaser).
+5.  Logiciel : Python 3.10+ pour l'orchestration.
+
+INSTRUCTIONS DE GÉNÉRATION :
+
+Génère l'arborescence complète et le contenu de chaque fichier pour implémenter
+cette structure :
+
+1. config.py : Gestion des clés API (Anthropic, Gemini) et des chemins par
+défaut. 2. main.py : L'orchestrateur. Il doit piloter la boucle : Analyse ->
+Processing Assets -> Génération Code -> Assemblage -> Génération de Variations.
+3. src/analyzer.py :
+
+  - Utilise l'API Google Generative AI (Gemini 1.5 Pro).
+  - Prompt d'analyse vidéo pour extraire un 'Logic Blueprint' structuré : (Type
+    de jeu, mécaniques de contrôle, entités, règles de collision, conditions de
+    victoire). 4. src/processor.py :
+  - Gestion des assets via Pillow.
+  - Redimensionnement intelligent pour optimiser le poids.
+  - Conversion de tous les fichiers du dossier assets_input en un dictionnaire
+    JSON de strings Base64. 5. src/generator.py :
+  - Prépare le prompt pour Claude 3.5 Sonnet.
+  - Doit inclure un 'System Prompt' expert en Phaser.js qui garantit que le code
+    généré est compatible avec le dictionnaire Base64. 6. src/evaluator.py :
+  - Un module de validation (Critique). Il doit simuler une évaluation du code
+    généré (vérification de la présence des fonctions preload, create, update
+    et du bouton CTA). 7. templates/phaser_template.html :
+  - Un template Jinja2 propre.
+  - Doit inclure le loader Phaser custom pour le Base64.
+  - Doit inclure le standard Voodoo/AppLovin pour le clic sortant (openCTA). 8.
+    requirements.txt : Liste complète des librairies (google-generativeai,
+    anthropic, pillow, jinja2, python-dotenv).
+
+DÉTAILS CRUCIAUX À INTÉGRER :
+
+  - Variations : Ajoute une fonction dans main.py qui, une fois le playable V1
+    généré, crée 3 variations en modifiant des paramètres numériques dans le
+    bloc GAME_CONFIG (vitesse, spawn rate, difficulté) par simple remplacement
+    de texte dans le HTML.
+  - Robustesse : Ajoute des commentaires explicatifs dans le code pour que je
+    puisse comprendre comment la donnée circule de la vidéo vers le JSON, puis
+    vers le code final.
+  - Erreurs : Prévois une gestion d'erreurs simple si un asset est manquant.
+
+Génère maintenant toute l'arborescence et le contenu de chaque fichier un par
+un, de façon détaillée et prête à l'emploi."
+
+Pourquoi ce prompt est efficace pour ta mission :
+
+1.  Directivité : Il impose le nom du dossier et la structure exacte que nous
+    avons discutée.
+2.  Expertise métier : Il mentionne les "Playable Ads" et "Voodoo/AppLovin", ce
+    qui va forcer l'IA à utiliser des standards de l'industrie.
+3.  Jinja2 : L'utilisation de templates (Jinja2) est la méthode la plus propre
+    pour fusionner du code Python et du HTML/JS sans faire de "spaghetti code".
+4.  Variations : Il répond directement à la contrainte n°2 de tes spécifications
+    ("Multiple variations generated from configurable parameters").
+
+Dès que Gemini te sort le code :
+
+1.  Crée ton dossier playable-pipeline.
+2.  Copie les fichiers un par un.
+3.  Crée un fichier .env pour mettre tes clés ANTHROPIC_API_KEY et
+    GOOGLE_API_KEY.
+4.  Lance pip install -r requirements.txt.
+
+Veux-tu que je t'aide à configurer l'accès à l'API Gemini ou Claude une fois que
+tu as le code ?
