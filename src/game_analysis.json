@@ -1,0 +1,79 @@
+{
+  "gameName": "Castle Clashers",
+  "coreLoop": "A 2D physics-based tower defense/offense game where the player controls a moving castle to fight against an enemy castle. The player drags and drops various units onto the floors of their castle. The units automatically attack the enemy castle. The goal is to destroy the enemy castle's health to 0% before they destroy yours.",
+  "mechanics": {
+    "dragAndDrop": "The player interacts by dragging a unit icon from the bottom panel and dropping it onto a valid empty slot on one of the castle's floors. A dotted line or indicator shows where the unit will be placed.",
+    "autoCombat": "Once placed, units automatically perform their attacks (e.g., shooting projectiles) towards the enemy castle.",
+    "healthSystem": "Both castles have a health percentage (starts at 100%). Damage reduces this percentage. The castle visually degrades as health decreases.",
+    "castleMovement": "Both castles are mounted on tank treads and are slowly moving towards each other, or are stationary on opposite sides of a battlefield. In the videos, they seem relatively stationary, exchanging fire.",
+    "physics": "Projectiles follow parabolic trajectories. Debris falls realistically when a castle takes damage. The castle itself may tilt or wobble when hit by heavy attacks."
+  },
+  "entities": {
+    "playerCastle": {
+      "description": "A multi-story structure on tank treads.",
+      "components": ["Base with treads", "Multiple floors with platforms for units", "Towers/Roofs"],
+      "visuals": "Stone textures, wooden doors, colored roofs (Blue). Visually degrades (blackens, crumbles) upon taking damage."
+    },
+    "enemyCastle": {
+      "description": "Similar to the player castle but with a different color scheme (Red roofs).",
+      "visuals": "Visually degrades upon taking damage."
+    },
+    "units": [
+      {
+        "id": "red_cyclops",
+        "type": "Melee/Short Range",
+        "description": "A red, one-eyed monster.",
+        "attack": "Throws small bombs or punches."
+      },
+      {
+        "id": "skeleton_gunner",
+        "type": "Ranged",
+        "description": "A skeleton holding a blue energy gun or rocket launcher.",
+        "attack": "Shoots straight projectiles or rockets."
+      },
+      {
+        "id": "green_goblin",
+        "type": "Ranged/Support",
+        "description": "A green goblin with a bow or weapon.",
+        "attack": "Shoots projectiles."
+      },
+      {
+        "id": "purple_ninja",
+        "type": "Special",
+        "description": "A purple ninja-like character.",
+        "attack": "Appears to have a specialized attack."
+      }
+    ],
+    "projectiles": [
+      "Rockets with smoke trails",
+      "Energy balls",
+      "Small bombs"
+    ]
+  },
+  "visualEffects": {
+    "damage": "When a castle is hit, numbers appear indicating damage (e.g., -44, -140). Explosions, smoke, and flying debris (stone chunks) occur.",
+    "destruction": "Towers crumble and turn black. Units that die turn into tombstones ('RIP').",
+    "weather": "Rain effects in the background.",
+    "background": "A 2D scrolling or static background with hills, trees, and sky.",
+    "ui": "Top bar showing health percentages for both sides. Bottom panel showing available units to spawn. Drag indicator (dotted line and finger icon) to guide placement."
+  },
+  "audioEffects": {
+    "soundEffects": [
+      "Explosions",
+      "Firing of rockets/guns",
+      "Unit spawning sound",
+      "Crumbling stone/debris sound"
+    ]
+  },
+  "suggestedPlayableSimplification": {
+    "objective": "Reduce the game to the most fun mechanic: dragging a unit onto the castle to see it shoot and destroy the enemy castle.",
+    "simplifications": [
+      "Static Castles: Do not animate the tank treads moving. Keep castles stationary on left and right.",
+      "Single Unit Type: Only use the Skeleton Gunner (Ranged) for simplicity, or allow one other type.",
+      "Pre-defined Slots: Have 3-4 fixed platforms on the player's castle where units can be dropped.",
+      "Simplified Physics: Use basic linear or simple parabolic paths for projectiles. No complex debris physics, just simple explosion sprites and changing the castle sprite to a 'damaged' state at 50% and 'destroyed' at 0%.",
+      "Win Condition: Player drags 3 units. They automatically fire. Enemy castle blows up. 'YOU WIN' screen.",
+      "Lose Condition: Player doesn't act fast enough, enemy castle shoots back and destroys player castle. 'YOU LOSE' screen."
+    ]
+  }
+}
