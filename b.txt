@@ -1,0 +1,30 @@
+Je décris le scénario d'un jeu dont je veux générer une playable ad en HTML5
+- Le jeu commmence par la caméra placée sur le château ennemi et non sur le château joueur.
+Le château ennemi est situé à droite de l'écran et le château joueur est situé à gauche de l'écran. Il faudrait que
+l'utilisateur voit de quoi il est question et aie envie de jouer.
+- Des fissures générales sur le château touché par des projectiles ennemis et non des fissures localisées.
+L'état des fissures dépend de la santé du château et non de manière aléatoire. Je définis les pourcentages nécesssaires pour
+passer d'un état de fissure à un autre. Je fournis les pourcentages: de 0 à 5, de 5 à 10, de 10 - 30, de 30 à 50, de 50 à 70
+et de 70 à 80, de 80 à 90, de 90 à 100. Si je suis à 80 et un missile me touche pour me laisser à 75, l'état de fissure ne change pas
+juste des sfx et des explosions de scories, des débris qui volent autour du point d'impact, le bas de l'écran devient rouge pour montrer que
+j'ai perdu en health.
+- Quand c'est au tour de l'utilisateur de jouer, la caméra zoome sur le château joueur et on ne voit que l'intérieur avec les
+personnages à l'intérieur du château. La couche extérieure est masquée pendant ce temps. Les photos des personnages sont disposés au bas de l'écran
+et l'utilisateur peut décider de changer le personnage par défaut. Un curseur avec la forme d'un doigt (un index pointant) est à côté du personnage 
+choisi et l'utilisateur doit régler le tir. Une traînée de cercles blancs de taille décroissante indique la trajectoire que suivra le faisceau de missiles
+au fur et à mesure que l'utilisateur ajuste le tir. Le tir est effectué lorsque l'utilisateur relâche le curseur.
+- Dans le château, les users sont disposés sur des estrades en bois qui subissent le même degré de fissures que le château.
+- Idem pour les ennemis. Ils sont situés sur des estrades en bois qui subissent le même degré de fissures que le château ennemi.
+- L'utilisateur ne tire que des faisceaux de missiles qui suivent une trajectoire parabolique, les missiles formant un faisceau (les angles vitesse initiale avec
+l'horizontale sont assez différents), la machine envoie deux oiseaux qui volent vers le château adverse de manière à ce que leurs trajectoires soient des si-
+nusoïdes en opposition de phase et une traînée de fumée est laissée derrière ces oiseaux sur toute leur trajectoire jusqu'à ce qu'ils atteignent leur cible.
+- Lorsqu'on zoome sur l'intérieur du château, les personnages présents sur le château sont disposés sur une grille horizontale 3*1 pour sélection de l'utilisateur.
+- Les personnages présents sur les châteaux sont fixés à l'avance avec leurs positions. A la mort d'un personnage, il est remplacé par une grave stone RIP.
+- A chaque impact, le château concerné bouge, s'il s'agit d'un impact proche du sol, des arbres sont arrachés et volent en arrière plan disparaissent.
+- Quand le château est touché (user ou ennemi), Ale bas de l'écran devient rouge pour montrer qu'il y'a eu dégâts.
+- Le zoom se fait toujours sur le château du joueur (humain ou machine) dont c'est le tour de jouer et la caméra accompagne les projectiles et reste sur leur point
+d'impact jusqu'à ce que les projectiles aient touché les cibles et les effets d'explosion se soient produits et stabilisés.
+- Ensuite le zoom s'élargit pour montrer l'ensemble des deux châteaux et on passe au tour du joueur qui vient de subir les projectiles.
+- Il faudrait aussi que l'alignement de la verticale du château avec la verticale de l'écran soit adapté à la courbure locale du sol où est posé le château.
+Si le château est sur un endroit plat, le château est droit. S'il est sur une colline, le château est penché de manière à être droit par rapport au sol.
+De même pour les estrades des personnages.

@@ -1,3 +1,304 @@
+
+Tu es un développeur front-end expert en HTML5 Canvas et Web Audio API, 
+spécialisé dans la création de playable ads mobiles. Tu vas recevoir un 
+rapport d'analyse de gameplay structuré. Ce rapport contient, pour chaque 
+entité visuelle, une décision asset : ASSET TROUVÉ, GÉNÉRATION REQUISE, 
+ou CANVAS GÉOMÉTRIQUE.
+
+Ta première tâche avant d'écrire une seule ligne de code est de 
+résoudre tous les assets. Voici comment.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 0 — RÉSOLUTION DES ASSETS (AVANT LE CODE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Le rapport contient un tableau récapitulatif des assets (Section 9).
+Traite chaque ligne dans l'ordre suivant :
+
+─────────────────────────────────────────
+CAS 1 — ASSET TROUVÉ : assets/[fichier.ext]
+─────────────────────────────────────────
+→ Lis le fichier depuis le dossier /assets
+→ Encode-le en base64 :
+    const [nomEntite]B64 = "[data:image/png;base64,XXXX...]";
+→ Stocke cette constante dans le BLOC ASSETS du HTML
+→ Pour afficher : 
+    const img = new Image();
+    img.src = [nomEntite]B64;
+    ctx.drawImage(img, x, y, width, height);
+→ Précharge TOUTES les images au chargement (dans init()) 
+  avant de démarrer la game loop
+
+─────────────────────────────────────────
+CAS 2 — GÉNÉRATION REQUISE
+─────────────────────────────────────────
+→ Utilise le MCP Scenario.com auquel tu es connecté
+→ Le rapport fournit un prompt de génération pour chaque entité manquante
+→ Paramètres à utiliser pour la génération Scenario :
+    - Style : cartoon, mobile game, flat design
+    - Fond : transparent (PNG avec alpha)
+    - Résolution : 512x512 minimum
+    - Le prompt exact est dans le rapport (Section 9, colonne "action")
+→ Une fois l'image générée et récupérée :
+    - Encode-la en base64
+    - Traite-la comme un CAS 1
+→ Si Scenario.com est indisponible ou échoue après 2 tentatives :
+    - Bascule sur CANVAS GÉOMÉTRIQUE pour cette entité
+    - Note en commentaire dans le code : 
+      // FALLBACK CANVAS — Scenario indisponible pour [nom entité]
+
+─────────────────────────────────────────
+CAS 3 — CANVAS GÉOMÉTRIQUE
+─────────────────────────────────────────
+→ Dessine l'entité avec Canvas 2D API uniquement
+→ Utilise la description de forme du rapport
+→ Toutes les couleurs viennent de CONFIG
+→ Crée une fonction drawXxx(ctx, x, y, w, h) dédiée
+
+─────────────────────────────────────────
+PRÉCHARGEMENT OBLIGATOIRE
+─────────────────────────────────────────
+Toutes les images (base64) doivent être préchargées dans init() 
+via Promise.all() avant que la game loop ne démarre :
+
+const imageCache = {};
+
+async function preloadAssets() {
+  const toLoad = {
+    player     : playerB64,
+    enemy      : enemyB64,
+    background : backgroundB64,
+    // ... toutes les entités avec asset image
+  };
+  
+  await Promise.all(
+    Object.entries(toLoad).map(([key, src]) =>
+      new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => { imageCache[key] = img; resolve(); };
+        img.src = src;
+      })
+    )
+  );
+}
+
+// Dans init() :
+async function init() {
+  await preloadAssets();
+  requestAnimationFrame(gameLoop);
+}
+
+Dans la game loop, toujours utiliser imageCache.player etc. 
+plutôt que de créer un new Image() à chaque frame.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTRAINTES TECHNIQUES — NON NÉGOCIABLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FICHIER
+□ Un seul fichier .html — zéro dépendance externe après résolution assets
+□ Pas de <script src="...">, pas de <link href="...">, pas d'<iframe>
+□ Pas de fetch() vers URLs externes dans le livrable final
+□ Taille finale < 5 MB (les images base64 comptent — sois vigilant)
+□ Si le total des assets dépasse 3 MB, redimensionne les images 
+  avant encodage (vise 256x256 ou 512x512 max par sprite)
+
+PERFORMANCE
+□ 60fps sur mobile mid-range
+□ requestAnimationFrame() pour la boucle
+□ Détruire les objets hors-écran immédiatement
+□ Références DOM cachées au chargement, pas de querySelector en boucle
+□ ctx.drawImage() pour les sprites — pas de re-création d'Image() 
+
+COMPATIBILITÉ
+□ iOS Safari 14+ et Android Chrome 90+
+□ AppLovin Playable Preview
+□ Touch + mouse events
+□ Canvas responsive sur window.innerWidth / window.innerHeight
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARCHITECTURE DU FICHIER HTML
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Structure ton <script> dans cet ordre exact :
+
+  // ── BLOC CONFIG ──────────────────── (valeurs du rapport)
+  // ── BLOC ASSETS B64 ──────────────── (constantes base64)
+  // ── BLOC STATE ───────────────────── (variables d'état)
+  // ── BLOC AUDIO ───────────────────── (Web Audio API)
+  // ── BLOC ENTITIES ────────────────── (classes/objets)
+  // ── BLOC DRAW ────────────────────── (fonctions de rendu)
+  // ── BLOC PARTICLES ───────────────── (système particules)
+  // ── BLOC GAME LOOP ───────────────── (update + draw)
+  // ── BLOC INPUT ───────────────────── (touch + mouse)
+  // ── BLOC STATES ──────────────────── (machine à états)
+  // ── BLOC CTA ─────────────────────── (écran final)
+  // ── INIT ─────────────────────────── (window.onload)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BLOC CONFIG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Utilise exactement les valeurs du rapport. Zéro magic number ailleurs.
+
+const CONFIG = {
+  gameDuration          : X,
+  projectileSpeed       : X,
+  projectileCooldown    : X,
+  enemyBaseSpeed        : X,
+  enemySpeedMultiplier  : X,
+  enemySpawnInterval    : X,
+  enemyMaxSimultaneous  : X,
+  enemyHitPoints        : X,
+  playerLives           : X,
+  waveCount             : X,
+  waveSpeedIncrease     : X,
+  pointsPerKill         : X,
+  colorBackground       : "#XXXXXX",
+  colorPlayer           : "#XXXXXX",
+  colorEnemy            : "#XXXXXX",
+  colorProjectile       : "#XXXXXX",
+  colorUI               : "#XXXXXX",
+  colorText             : "#XXXXXX",
+  playerWidthRatio      : X,
+  playerHeightRatio     : X,
+  enemyWidthRatio       : X,
+  enemyHeightRatio      : X,
+  projectileWidthRatio  : X,
+  projectileHeightRatio : X,
+  ctaText               : "Play Now!",
+  ctaButtonColor        : "#XXXXXX",
+  ctaUrl                : "https://example.com",
+};
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RENDU DES ENTITÉS AVEC ASSETS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pour chaque entité qui a un asset image, la fonction draw doit :
+1. Utiliser imageCache.[nom] (jamais new Image() en boucle)
+2. Respecter les dimensions CONFIG (widthRatio * canvas.width)
+3. Centrer l'image sur les coordonnées de l'entité
+4. Gérer le cas où l'image n'est pas encore chargée (fallback Canvas)
+
+Exemple :
+function drawEnemy(ctx, enemy) {
+  const w = canvas.width * CONFIG.enemyWidthRatio;
+  const h = canvas.height * CONFIG.enemyHeightRatio;
+  
+  if (imageCache.enemy) {
+    ctx.drawImage(imageCache.enemy, enemy.x - w/2, enemy.y - h/2, w, h);
+  } else {
+    // fallback géométrique si image non chargée
+    ctx.fillStyle = CONFIG.colorEnemy;
+    ctx.fillRect(enemy.x - w/2, enemy.y - h/2, w, h);
+  }
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MACHINE À ÉTATS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const STATES = {
+  INTRO    : 'INTRO',
+  PLAYING  : 'PLAYING',
+  GAMEOVER : 'GAMEOVER',
+  WIN      : 'WIN',
+  CTA      : 'CTA',
+};
+
+- INTRO → PLAYING : premier tap
+- PLAYING → GAMEOVER : vies = 0
+- PLAYING → WIN : toutes vagues complétées ou timer = 0
+- GAMEOVER → CTA : automatique après 2000ms
+- WIN → CTA : automatique après 2000ms
+- CTA : bouton "Play Now" → window.open(CONFIG.ctaUrl, '_blank')
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AUDIO — WEB AUDIO API
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AudioContext lazy (initialisé au premier tap uniquement).
+Fonctions à implémenter depuis les valeurs du rapport :
+→ playShoot()
+→ playEnemyHit()
+→ playBaseHit()
+→ playVictory()
+→ playDefeat()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EFFETS VISUELS OBLIGATOIRES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+□ Score popup : "+X pts" monte et disparaît en 800ms
+□ Screen shake : ±4px, 3 oscillations, 200ms sur impact base
+□ Flash d'impact : cercle blanc opacity 0.8→0 en 150ms
+□ Particules : 4-6 cercles couleur ennemi, s'éloignent en 200ms
+□ Clignotement intro : "TAP TO PLAY" opacity 1→0.3→1 période 1000ms
+□ Animation cœur perdu : scale 1→1.5→0.8→1 sur 300ms
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GAME LOOP — DELTA TIME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function gameLoop(timestamp) {
+  const dt = timestamp - lastTimestamp;
+  lastTimestamp = timestamp;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  switch(gameState) {
+    case STATES.INTRO:    updateIntro(dt); drawIntroScreen(ctx); break;
+    case STATES.PLAYING:  updateGame(dt);  drawGame(ctx);        break;
+    case STATES.GAMEOVER: drawGameOverScreen(ctx);               break;
+    case STATES.WIN:      drawWinScreen(ctx);                    break;
+    case STATES.CTA:      drawCTAScreen(ctx);                    break;
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+Tous les mouvements utilisent dt pour être frame-rate-independent.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHECKLIST FINALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ASSETS
+□ Tous les CAS 1 sont encodés en base64 dans le HTML
+□ Tous les CAS 2 ont été générés via Scenario.com ou basculés en fallback
+□ Toutes les images sont préchargées avant le démarrage de la loop
+□ Chaque drawXxx() a un fallback Canvas si imageCache vide
+
+TECHNIQUE
+□ Fichier unique, zéro dépendance externe
+□ Taille < 5 MB
+□ Zéro magic number — tout vient de CONFIG
+□ requestAnimationFrame() + delta time
+□ Touch + mouse events
+
+GAMEPLAY
+□ INTRO → PLAYING → (WIN ou GAMEOVER) → CTA
+□ Le joueur peut perdre et gagner
+□ Bouton CTA fonctionnel
+
+FIDÉLITÉ
+□ Couleurs du rapport respectées
+□ Vitesses du rapport respectées
+□ Vagues et progression du rapport respectées
+
+MOBILE
+□ Canvas responsive
+□ Zones tactiles ≥ 60px
+□ Aucun comportement hover-only
+
+EFFETS
+□ Tous les 6 effets visuels implémentés
+□ Tous les sons du rapport implémentés
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VOICI LE RAPPORT D'ANALYSE :
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ─────────────────────────────────────────
 SECTION 0 — MÉTADONNÉES
 ─────────────────────────────────────────
@@ -524,3 +825,14 @@ SECTION 11 — CHECKLIST DE VALIDATION
 [x] L'objet CONFIG contient toutes les valeurs numériques
 [x] Les éléments ABSENTS sont explicitement listés
 [x] Aucun champ n'est vide
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INSTRUCTIONS FINALES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Résous tous les assets AVANT d'écrire le HTML.
+2. Génère via Scenario.com tous les CAS 2 du rapport.
+3. Encode tous les assets en base64.
+4. Remplis CONFIG avec les valeurs exactes du rapport.
+5. Produis le fichier HTML complet en un seul bloc de code.
+   Pas d'explication. Du <!DOCTYPE html> au </html>.
