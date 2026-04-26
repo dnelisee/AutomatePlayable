@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Castle Clasher - Playable Ad</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none; /* Empêche le scroll sur mobile */
+        }
+        canvas {
+            display: block; width: 100%; height: 100%;
+        }
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; /* Laisse passer les clics au canvas */
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        /* UI de sélection de personnages (3x1) */
+        #character-selection {
+            display: none; justify-content: center; gap: 15px; padding-bottom: 30px;
+            pointer-events: auto;
+        }
+        .char-btn {
+            width: 60px; height: 60px; border-radius: 10px; border: 3px solid #fff;
+            background-color: rgba(0,0,0,0.5); background-size: cover; background-position: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5); transition: transform 0.1s;
+        }
+        .char-btn.selected {
+            border-color: #FFD700; transform: scale(1.1); background-color: rgba(255,215,0,0.3);
+        }
+        #damage-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 30%;
+            background: linear-gradient(to top, rgba(255,0,0,0.6), transparent);
+            opacity: 0; transition: opacity 0.2s; pointer-events: none;
+        }
+        /* Écran de fin (CTA) */
+        #end-screen {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); flex-direction: column; justify-content: center; align-items: center;
+            pointer-events: auto;
+        }
+        h1 { color: white; font-size: 40px; margin-bottom: 20px; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
+        .cta-btn {
+            background: linear-gradient(#4CAF50, #2E7D32); color: white;
+            padding: 15px 40px; font-size: 24px; font-weight: bold; border: none; border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+        /* Main Pointing Cursor */
+        #finger-cursor {
+            position: absolute; width: 40px; height: 40px; display: none;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 4.46 13.54 2 10.5 2S5 4.46 5 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74l-3.44-.72c-.08-.02-.17-.02-.25-.02-.38 0-.74.15-1.02.43L4.12 19l4.63 4.62c.28.27.67.43 1.06.43h6.8c.83 0 1.54-.5 1.76-1.28l1.44-5.06c.03-.1.05-.2.05-.31 0-.64-.38-1.22-.96-1.46z" fill="%23fff" stroke="%23000" stroke-width="1"/></svg>') no-repeat;
+            animation: point 0.5s infinite alternate; z-index: 100;
+        }
+        @keyframes point { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="ui-layer">
+    <div id="damage-overlay"></div>
+    <div id="finger-cursor"></div>
+    <div id="character-selection">
+        <div class="char-btn selected" id="char-1" style="background-color: #4CAF50;"></div>
+        <div class="char-btn" id="char-2" style="background-color: #2196F3;"></div>
+        <div class="char-btn" id="char-3" style="background-color: #9C27B0;"></div>
+    </div>
+</div>
+
+<div id="end-screen">
+    <h1 id="end-title">Victoire !</h1>
+    <button class="cta-btn" onclick="openStore()">JOUER MAINTENANT</button>
+</div>
+
+<script>
+/**
+ * CASTLE CLASHER - PLAYABLE AD ENGINE
+ * Rendu Canvas Vanilla JS
+ */
+
+// Configuration Globale
+const GAME = {
+    state: 'INIT', // INIT, PAN_TO_ENEMY, PAN_TO_PLAYER, PLAYER_AIM, PROJECTILE_FLIGHT, DAMAGE_SETTLE, ENEMY_TURN
+    width: 2000,   // Largeur du monde virtuel
+    height: 1000,  // Hauteur du monde virtuel
+    gravity: 0.5,
+    turn: 'player'
+};
+
+const ASSETS = {
+    // Dans un vrai cas d'usage, remplacez par les URL de vos assets Voodoo
+    bg: 'linear-gradient(#87CEEB, #E0F6FF)',
+    ground: '#5b8c36', // Herbe
+    dirt: '#5e4324'    // Terre
+};
+
+// Éléments du DOM
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const uiSelection = document.getElementById('character-selection');
+const charBtns = document.querySelectorAll('.char-btn');
+const damageOverlay = document.getElementById('damage-overlay');
+const fingerCursor = document.getElementById('finger-cursor');
+let activeCharIndex = 0;
+
+// Variables globales de jeu
+let camera = { x: 1500, y: 500, zoom: 1, targetX: 1500, targetY: 500, targetZoom: 1, shake: 0 };
+let projectiles = [];
+let particles =[];
+let input = { isDragging: false, startX: 0, startY: 0, currX: 0, currY: 0 };
+let time = 0;
+let stateTimer = 0;
+
+// Fonction de terrain (Collines sinusoïdales pour inclinaison)
+function getGroundY(x) {
+    return GAME.height - 200 - Math.sin(x / 300) * 80;
+}
+function getGroundAngle(x) {
+    return Math.atan2(getGroundY(x + 10) - getGroundY(x - 10), 20);
+}
+
+// Seuils de Fissures (selon cahier des charges)
+function getCrackState(hp) {
+    if (hp > 90) return 0;
+    if (hp > 80) return 1;
+    if (hp > 70) return 2;
+    if (hp > 50) return 3;
+    if (hp > 30) return 4;
+    if (hp > 10) return 5;
+    if (hp > 5) return 6;
+    return 7;
+}
+
+// --- CLASSES DES ENTITÉS ---
+
+class Castle {
+    constructor(x, isPlayer) {
+        this.x = x;
+        this.isPlayer = isPlayer;
+        this.y = getGroundY(x);
+        this.angle = getGroundAngle(x);
+        this.hp = 100;
+        this.crackState = 0;
+        this.width = 250;
+        this.height = 350;
+        this.showInterior = false;
+        
+        // Personnages sur estrades (Grid 3x1)
+        this.characters =[
+            { id: 0, type: isPlayer?'elf':'skeleton', offset: {x: -60, y: -50}, isDead: false, color: isPlayer?'#4CAF50':'#fff' },
+            { id: 1, type: isPlayer?'knight':'orc', offset: {x: 0, y: -120}, isDead: false, color: isPlayer?'#2196F3':'#FF5722' },
+            { id: 2, type: isPlayer?'mage':'skeleton', offset: {x: 60, y: -50}, isDead: false, color: isPlayer?'#9C27B0':'#fff' }
+        ];
+    }
+
+    takeDamage(amount) {
+        this.hp = Math.max(0, this.hp - amount);
+        this.crackState = getCrackState(this.hp);
+        camera.shake = 15;
+        triggerDamageUI();
+        
+        // Particules de débris
+        for(let i=0; i<15; i++) {
+            particles.push(new Particle(this.x + (Math.random()-0.5)*100, this.y - 100 + (Math.random()-0.5)*100, 'debris'));
+        }
+        
+        // Si impact proche du sol, envol d'arbres
+        if (Math.random() > 0.5) {
+            particles.push(new Particle(this.x + (Math.random()-0.5)*200, this.y, 'tree'));
+        }
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+
+        // Intérieur / Extérieur
+        if (this.isPlayer && this.showInterior) {
+            // Dessin Intérieur (Coupe du château)
+            ctx.fillStyle = '#444';
+            ctx.fillRect(-this.width/2, -this.height, this.width, this.height);
+            ctx.fillStyle = '#666';
+            ctx.fillRect(-this.width/2+10, -this.height+10, this.width-20, this.height-20);
+
+            // Estrades
+            this.characters.forEach(char => {
+                // Dessiner l'estrade
+                ctx.fillStyle = '#8D6E63';
+                ctx.fillRect(char.offset.x - 30, char.offset.y, 60, 10);
+                // Dessin Fissures sur l'estrade (même niveau que le château)
+                if (this.crackState > 0) {
+                    ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(char.offset.x-10, char.offset.y); ctx.lineTo(char.offset.x+10, char.offset.y+10); ctx.stroke();
+                }
+
+                // Dessin Personnage ou Tombe
+                if (char.isDead) {
+                    ctx.fillStyle = '#999'; // RIP Tombstone
+                    ctx.beginPath(); ctx.roundRect(char.offset.x - 15, char.offset.y - 40, 30, 40, 10); ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.font = "12px Arial"; ctx.fillText("RIP", char.offset.x - 10, char.offset.y - 15);
+                } else {
+                    // Placeholder Perso
+                    ctx.fillStyle = char.color;
+                    ctx.beginPath(); ctx.arc(char.offset.x, char.offset.y - 20, 15, 0, Math.PI*2); ctx.fill();
+                    // Indicateur de sélection (joueur)
+                    if (this.isPlayer && char.id === activeCharIndex && GAME.state === 'PLAYER_AIM') {
+                        ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 3;
+                        ctx.beginPath(); ctx.arc(char.offset.x, char.offset.y - 20, 22 + Math.sin(time*10)*2, 0, Math.PI*2); ctx.stroke();
+                    }
+                }
+            });
+        } else {
+            // Dessin Extérieur
+            ctx.fillStyle = this.isPlayer ? '#3f51b5' : '#b71c1c';
+            ctx.fillRect(-this.width/2, -this.height, this.width, this.height);
+            
+            // Dessin Fissures (généralisées)
+            if (this.crackState > 0) {
+                ctx.strokeStyle = '#000'; ctx.lineWidth = 2 + this.crackState;
+                ctx.beginPath();
+                // Fissures procédurales basées sur crackState
+                for(let i=0; i<this.crackState * 3; i++) {
+                    let cx = (i%3 - 1) * 50;
+                    let cy = -this.height + (i * 20);
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx + (Math.random()-0.5)*80, cy + 40 + Math.random()*20);
+                }
+                ctx.stroke();
+            }
+        }
+        ctx.restore();
+    }
+}
+
+class Projectile {
+    constructor(x, y, vx, vy, type, targetCastle) {
+        this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+        this.type = type; // 'missile' ou 'bird'
+        this.target = targetCastle;
+        this.active = true;
+        this.trailTimer = 0;
+        
+        // Pour les oiseaux
+        if(type === 'bird') {
+            this.baseY = y;
+            this.phase = Math.random() * Math.PI * 2;
+            this.startX = x;
+            this.distTotal = Math.abs(targetCastle.x - x);
+        }
+    }
+
+    update(dt) {
+        if (!this.active) return;
+
+        if (this.type === 'missile') {
+            this.vy += GAME.gravity;
+            this.x += this.vx;
+            this.y += this.vy;
+            
+            // Faisceau de scories/traînée
+            this.trailTimer++;
+            if (this.trailTimer % 2 === 0) particles.push(new Particle(this.x, this.y, 'smoke'));
+            
+        } else if (this.type === 'bird') {
+            // Mouvement vers la cible + sinusoïde
+            let dir = Math.sign(this.target.x - this.x);
+            this.x += dir * 15;
+            
+            let progress = Math.abs(this.x - this.startX) / this.distTotal;
+            this.baseY += (this.target.y - 150 - this.baseY) * 0.05; // Approche l'altitude cible
+            this.y = this.baseY + Math.sin(time * 15 + this.phase) * 80 * (1-progress); // Oscillation
+            
+            this.trailTimer++;
+            if (this.trailTimer % 3 === 0) particles.push(new Particle(this.x, this.y, 'smoke'));
+        }
+
+        // Hit Detection
+        if (this.x > this.target.x - 100 && this.x < this.target.x + 100 && this.y > this.target.y - this.target.height) {
+            this.active = false;
+            this.target.takeDamage(10);
+            createExplosion(this.x, this.y);
+            
+            // Tuer un personnage si collision précise
+            if(this.target.showInterior) {
+               let char = this.target.characters.find(c => !c.isDead);
+               if(char) char.isDead = true;
+            }
+        }
+        
+        // Out of bounds ou sol
+        if (this.y > getGroundY(this.x) || this.x < 0 || this.x > GAME.width) {
+            this.active = false;
+            if(this.y > getGroundY(this.x)) {
+                createExplosion(this.x, this.y);
+                camera.shake = 5; // Secousse légère sol
+            }
+        }
+    }
+
+    draw(ctx) {
+        if (!this.active) return;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        if (this.type === 'missile') {
+            ctx.rotate(Math.atan2(this.vy, this.vx));
+            ctx.fillStyle = 'red';
+            ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-10, -5); ctx.lineTo(-10, 5); ctx.fill();
+        } else {
+            ctx.fillStyle = '#222';
+            ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill(); // Corps oiseau
+            ctx.fillStyle = 'red'; ctx.fillRect(4, -2, 4, 4); // Oeil rouge
+        }
+        ctx.restore();
+    }
+}
+
+class Particle {
+    constructor(x, y, type) {
+        this.x = x; this.y = y; this.type = type;
+        this.vx = (Math.random() - 0.5) * 10;
+        this.vy = (Math.random() - 0.5) * 10;
+        this.life = 1.0;
+        this.size = Math.random() * 5 + 2;
+    }
+    update() {
+        if(this.type === 'debris' || this.type === 'tree') this.vy += GAME.gravity;
+        this.x += this.vx; this.y += this.vy;
+        this.life -= 0.02;
+    }
+    draw(ctx) {
+        ctx.globalAlpha = Math.max(0, this.life);
+        if (this.type === 'smoke') {
+            ctx.fillStyle = '#ccc';
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size*2, 0, Math.PI*2); ctx.fill();
+        } else if (this.type === 'debris') {
+            ctx.fillStyle = '#555';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        } else if (this.type === 'tree') {
+            ctx.fillStyle = '#2e7d32';
+            ctx.beginPath(); ctx.moveTo(this.x, this.y-10); ctx.lineTo(this.x-10, this.y+10); ctx.lineTo(this.x+10, this.y+10); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+    }
+}
+
+// --- INITIALISATION ---
+let playerCastle = new Castle(300, true);
+let enemyCastle = new Castle(1700, false);
+
+function createExplosion(x, y) {
+    for(let i=0; i<10; i++) particles.push(new Particle(x, y, 'smoke'));
+}
+
+function triggerDamageUI() {
+    damageOverlay.style.opacity = '1';
+    setTimeout(() => { damageOverlay.style.opacity = '0'; }, 300);
+}
+
+// Gestion des inputs
+charBtns.forEach((btn, index) => {
+    btn.addEventListener('pointerdown', (e) => {
+        charBtns.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        activeCharIndex = index;
+    });
+});
+
+window.addEventListener('pointerdown', e => {
+    if (e.target.classList.contains('char-btn') || GAME.state !== 'PLAYER_AIM') return;
+    input.isDragging = true;
+    input.startX = e.clientX; input.startY = e.clientY;
+    input.currX = e.clientX; input.currY = e.clientY;
+    fingerCursor.style.display = 'none'; // Cache le curseur indicatif au clic
+});
+
+window.addEventListener('pointermove', e => {
+    if (!input.isDragging) return;
+    input.currX = e.clientX; input.currY = e.clientY;
+});
+
+window.addEventListener('pointerup', e => {
+    if (!input.isDragging) return;
+    input.isDragging = false;
+    
+    // Tir !
+    let dx = input.startX - input.currX;
+    let dy = input.startY - input.currY;
+    
+    // Si on a assez tiré en arrière
+    if (Math.hypot(dx, dy) > 20) {
+        let activeChar = playerCastle.characters[activeCharIndex];
+        let originX = playerCastle.x + activeChar.offset.x;
+        let originY = playerCastle.y + activeChar.offset.y - 20;
+        
+        // Faisceau de missiles (3 missiles avec léger spread)
+        for(let i=-1; i<=1; i++) {
+            let vx = (dx * 0.15) + i*(Math.random()*1);
+            let vy = (dy * 0.15) + i*(Math.random()*1);
+            projectiles.push(new Projectile(originX, originY, vx, vy, 'missile', enemyCastle));
+        }
+        
+        changeState('PROJECTILE_FLIGHT');
+        uiSelection.style.display = 'none';
+        playerCastle.showInterior = false;
+    }
+});
+
+// --- STATE MACHINE ---
+function changeState(newState) {
+    GAME.state = newState;
+    stateTimer = 0;
+    
+    switch(newState) {
+        case 'INIT':
+            camera.targetX = enemyCastle.x; camera.targetZoom = 1.2;
+            setTimeout(() => changeState('PAN_TO_PLAYER'), 2000);
+            break;
+        case 'PAN_TO_PLAYER':
+            camera.targetX = playerCastle.x; camera.targetZoom = 1.0;
+            setTimeout(() => changeState('PLAYER_AIM'), 1500);
+            break;
+        case 'PLAYER_AIM':
+            camera.targetX = playerCastle.x; camera.targetZoom = 1.6; camera.targetY = playerCastle.y - 100;
+            playerCastle.showInterior = true;
+            uiSelection.style.display = 'flex';
+            
+            // Positionne le curseur du doigt
+            setTimeout(() => {
+                let rect = document.getElementById(`char-${activeCharIndex+1}`).getBoundingClientRect();
+                fingerCursor.style.left = (rect.left + rect.width/2) + 'px';
+                fingerCursor.style.top = (rect.top - 50) + 'px';
+                fingerCursor.style.display = 'block';
+            }, 500);
+            break;
+        case 'PROJECTILE_FLIGHT':
+            camera.targetZoom = 1.2;
+            break;
+        case 'DAMAGE_SETTLE':
+            camera.targetZoom = 1.0;
+            camera.targetX = GAME.width / 2; // Montre les deux
+            
+            // Check Game Over
+            if(playerCastle.hp <= 0 || enemyCastle.hp <= 0) {
+                setTimeout(() => changeState('GAME_OVER'), 1500);
+                return;
+            }
+            
+            setTimeout(() => {
+                if (GAME.turn === 'player') {
+                    GAME.turn = 'enemy';
+                    changeState('ENEMY_TURN');
+                } else {
+                    GAME.turn = 'player';
+                    changeState('PLAYER_AIM');
+                }
+            }, 2000);
+            break;
+        case 'ENEMY_TURN':
+            camera.targetX = enemyCastle.x; camera.targetZoom = 1.6;
+            camera.targetY = enemyCastle.y - 100;
+            setTimeout(() => {
+                // L'ennemi tire 2 oiseaux
+                let originY = enemyCastle.y - 200;
+                let bird1 = new Projectile(enemyCastle.x - 50, originY, 0, 0, 'bird', playerCastle);
+                let bird2 = new Projectile(enemyCastle.x - 50, originY, 0, 0, 'bird', playerCastle);
+                bird2.phase += Math.PI; // Opposition de phase stricte
+                projectiles.push(bird1, bird2);
+                changeState('PROJECTILE_FLIGHT');
+            }, 1000);
+            break;
+        case 'GAME_OVER':
+            document.getElementById('end-screen').style.display = 'flex';
+            document.getElementById('end-title').innerText = playerCastle.hp > 0 ? "VICTOIRE !" : "DÉFAITE...";
+            break;
+    }
+}
+
+// --- BOUCLE DE RENDU ---
+function update() {
+    time += 0.016;
+    
+    // Mise à jour Caméra (Lerp)
+    camera.x += (camera.targetX - camera.x) * 0.05;
+    camera.y += (camera.targetY - camera.y) * 0.05;
+    camera.zoom += (camera.targetZoom - camera.zoom) * 0.05;
+    if(camera.shake > 0) camera.shake *= 0.9;
+
+    // Mise à jour entités
+    projectiles.forEach(p => p.update());
+    particles.forEach(p => p.update());
+    
+    // Nettoyage
+    projectiles = projectiles.filter(p => p.active);
+    particles = particles.filter(p => p.life > 0);
+
+    // Caméra suit les projectiles
+    if (GAME.state === 'PROJECTILE_FLIGHT') {
+        if (projectiles.length > 0) {
+            let avgX = projectiles.reduce((sum, p) => sum + p.x, 0) / projectiles.length;
+            let avgY = projectiles.reduce((sum, p) => sum + p.y, 0) / projectiles.length;
+            camera.targetX = avgX;
+            camera.targetY = avgY;
+        } else {
+            changeState('DAMAGE_SETTLE');
+        }
+    }
+}
+
+function drawTrajectory(ctx, sx, sy, dx, dy) {
+    let x = sx; let y = sy;
+    let vx = dx * 0.15; let vy = dy * 0.15;
+    let radius = 12;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    for(let i=0; i<25; i++) {
+        vy += GAME.gravity;
+        x += vx; y += vy;
+        ctx.beginPath(); ctx.arc(x, y, Math.max(2, radius), 0, Math.PI*2); ctx.fill();
+        radius *= 0.9;
+    }
+}
+
+function draw() {
+    // Redimensionnement dynamique
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Ciel
+    let grad = ctx.createLinearGradient(0,0,0,canvas.height);
+    grad.addColorStop(0, '#87CEEB'); grad.addColorStop(1, '#E0F6FF');
+    ctx.fillStyle = grad; ctx.fillRect(0,0, canvas.width, canvas.height);
+
+    ctx.save();
+    
+    // Transformations Caméra
+    let cx = canvas.width/2; let cy = canvas.height/2;
+    ctx.translate(cx, cy);
+    ctx.scale(camera.zoom, camera.zoom);
+    let sx = (Math.random()-0.5)*camera.shake; let sy = (Math.random()-0.5)*camera.shake;
+    ctx.translate(-camera.x + sx, -camera.y + sy);
+
+    // Dessin Terrain (collines)
+    ctx.fillStyle = ASSETS.ground;
+    ctx.beginPath();
+    ctx.moveTo(0, GAME.height);
+    for(let x=0; x<=GAME.width; x+=50) {
+        ctx.lineTo(x, getGroundY(x));
+    }
+    ctx.lineTo(GAME.width, GAME.height);
+    ctx.fill();
+    // Couche de terre en dessous
+    ctx.fillStyle = ASSETS.dirt;
+    ctx.beginPath();
+    ctx.moveTo(0, GAME.height);
+    for(let x=0; x<=GAME.width; x+=50) { ctx.lineTo(x, getGroundY(x) + 20); }
+    ctx.lineTo(GAME.width, GAME.height);
+    ctx.fill();
+
+    // Dessin Castles
+    playerCastle.draw(ctx);
+    enemyCastle.draw(ctx);
+
+    // Dessin Projectiles & Particles
+    projectiles.forEach(p => p.draw(ctx));
+    particles.forEach(p => p.draw(ctx));
+
+    // Dessin Trajectoire de visée
+    if (GAME.state === 'PLAYER_AIM' && input.isDragging) {
+        let activeChar = playerCastle.characters[activeCharIndex];
+        let originX = playerCastle.x + activeChar.offset.x;
+        let originY = playerCastle.y + activeChar.offset.y - 20;
+        let dx = input.startX - input.currX;
+        let dy = input.startY - input.currY;
+        drawTrajectory(ctx, originX, originY, dx, dy);
+    }
+
+    ctx.restore();
+    
+    // UI HP Bars (Optionnel, au-dessus des châteaux)
+    // Non requis explicitement mais aide la compréhension visuelle
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+// CTA Function
+function openStore() {
+    // Standard MRAID/AppLovin click
+    if (typeof mraid !== 'undefined') { mraid.open("https://apps.apple.com/app/idYOUR_APP_ID"); }
+    else { window.open("https://apps.apple.com/app/idYOUR_APP_ID", "_blank"); }
+}
+
+// Démarrage
+changeState('INIT');
+loop();
+
+</script>
+</body>
+</html>
