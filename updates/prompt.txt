@@ -1,5 +1,7 @@
 Le but est que tu produises le code HTMl dans le fichier playable.html du playable ad du jeu Castle Clashers. 
 
+Comme code de base, prends le playable5.html 
+
 Le scénario du jeu est décrit dans le fichier scenario.txt. 
 L'analyse plus précise du jeu (mécanisme, physique, gameplay) est décrite dans le fichier game_analysis.txt. 
 
