@@ -1,3 +1,0 @@
-# AutomatePlayable
-
-Projet Hackathon - AutomatePlayable
